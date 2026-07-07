@@ -1,0 +1,81 @@
+language: "ko-KR"
+
+reviews:
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - develop
+
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  changed_files_summary: false
+  poem: false
+  review_status: true
+
+  path_filters:
+    - "!**/docs/**"
+    - "!**/build/**"
+    - "!**/.gradle/**"
+    - "!gradlew"
+    - "!gradlew.bat"
+    - "!**/*.yml.example"
+
+  path_instructions:
+    - path: "**/*.java"
+      instructions: >
+        - Spring Boot 3.x / Java 기준으로 리뷰.
+        - 성능 문제나 불필요한 중복 로직이 있는지 확인.
+        - 로그에 민감정보(비밀번호, 토큰, 개인정보)가 찍히지 않는지 점검.
+        - Controller, Service, Repository, Entity, DTO의 책임이 서로 섞이지 않았는지 확인.
+
+    - path: "**/*Controller.java"
+      instructions: >
+        - 비즈니스 로직이 Controller에 섞이면 Service로 이동 권장.
+        - 인증/인가가 필요한 API에서 보안 처리가 누락되지 않았는지 점검.
+        - REST 규약(HTTP 메서드·상태코드·URI 명사화) 위반 지적.
+        - 응답 형식이 프로젝트 공통 규약과 일관적인지 점검.
+
+    - path: "**/*Service.java"
+      instructions: >
+        - Service 계층의 트랜잭션·비즈니스 규칙을 집중 검토한다.
+        - self-invocation(같은 클래스 내부 메서드 호출)으로 @Transactional 프록시가 무력화되는 패턴 지적.
+        - 예외 처리와 실패 케이스 처리가 충분한지 확인.
+
+    - path: "**/*Repository.java"
+      instructions: >
+        - 데이터 접근 계층과 쿼리를 검토한다.
+        - 쿼리 성능과 N+1 문제가 없는지 확인.
+        - 복잡한 쿼리의 가독성과 유지보수성이 적절한지 확인.
+
+    - path: "**/global/**/*.java"
+      instructions: >
+        - Spring Boot 설정이 과도하게 복잡하거나 전역 상태에 의존하지 않는지 확인.
+        - Configuration 클래스의 적절성 확인.
+        - 인증 실패와 인가 실패의 처리 흐름이 올바른지 점검.
+        - Bean 순환 참조 가능성이 없는지 점검.
+
+    - path: "**/*Test.java"
+      instructions: >
+        - 테스트 코드를 검토한다.
+        - given-when-then 구조와 단언(assertion)이 실제 동작을 검증하는지 확인.
+        - 통합 테스트와 단위 테스트 구분이 명확한지 확인.
+        - 예외 경로·엣지 케이스 테스트가 누락되지 않았는지 점검.
+
+    - path: ".github/workflows/**/*.{yml,yaml}"
+      instructions: >
+        - GitHub Actions에서 Secret이나 민감 정보가 노출되지 않는지 확인.
+        - 불필요하게 오래 걸리는 Job이나 중복 실행이 없는지 확인.
+        - Workflow 최적화 가능 여부 확인.
+        - 병렬 실행 가능한 Job이 있는지 확인
+
+    - path: "**/docker-compose*.{yml,yaml}"
+      instructions: >
+        - 민감 정보가 노출되지 않는지 확인.
+        - 환경변수 사용 방식이 적절한지 확인.
+        - Docker Compose 베스트 프랙티스 준수.
+        - 서비스 간 의존성, 포트 노출, 볼륨 설정이 안전한지 확인.
+
+chat:
+  auto_reply: true
