@@ -1,6 +1,10 @@
 package com.samdasu.dodoong.auth.service;
 
+import com.samdasu.dodoong.auth.domain.RefreshToken;
 import com.samdasu.dodoong.auth.dto.SignupRequest;
+import com.samdasu.dodoong.auth.dto.SignupResult;
+import com.samdasu.dodoong.auth.dto.TokenResponse;
+import com.samdasu.dodoong.auth.repository.RefreshTokenRepository;
 import com.samdasu.dodoong.global.exception.CustomException;
 import com.samdasu.dodoong.global.response.code.ErrorCode;
 import com.samdasu.dodoong.member.domain.Member;
@@ -15,21 +19,41 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private final MemberRepository memberRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Transactional
-    public Member signup(SignupRequest request) {
+    public SignupResult signup(SignupRequest request) {
         validateDuplicateLoginId(request.loginId());
 
         //비밀번호 암호화
-        String encodedPassword = passwordEncoder.encode(request.password());
+        String encodedPassword =
+                passwordEncoder.encode(request.password());
 
         Member member = Member.builder()
                 .loginId(request.loginId())
                 .encodedPassword(encodedPassword)
                 .build();
 
-        return memberRepository.save(member);
+        Member savedMember = memberRepository.save(member);
+
+        TokenResponse tokenResponse =
+                jwtTokenProvider.issueTokens(savedMember);
+
+        RefreshToken refreshToken = RefreshToken.create(
+                savedMember,
+                tokenResponse.refreshToken()
+        );
+
+        refreshTokenRepository.save(refreshToken);
+
+        return new SignupResult(
+                savedMember.getMemberId(),
+                savedMember.getLoginId(),
+                tokenResponse.accessToken(),
+                tokenResponse.refreshToken()
+        );
     }
 
     private void validateDuplicateLoginId(String loginId) {

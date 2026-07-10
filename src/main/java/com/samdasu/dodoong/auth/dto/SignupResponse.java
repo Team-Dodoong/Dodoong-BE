@@ -4,12 +4,20 @@ import com.samdasu.dodoong.member.domain.Member;
 
 public record SignupResponse(
         Long memberId,
-        String loginId
+        String loginId,
+        String accessToken,
+        String tokenType
 ) {
-    public static SignupResponse from(Member member) {
+    public static SignupResponse of(
+            Long memberId,
+            String loginId,
+            String accessToken
+    ) {
         return new SignupResponse(
-                member.getMemberId(),
-                member.getLoginId()
+                memberId,
+                loginId,
+                accessToken,
+                "Bearer"
         );
     }
 }
