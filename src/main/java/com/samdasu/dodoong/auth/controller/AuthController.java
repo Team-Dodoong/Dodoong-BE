@@ -1,8 +1,6 @@
 package com.samdasu.dodoong.auth.controller;
 
-import com.samdasu.dodoong.auth.dto.SignupRequest;
-import com.samdasu.dodoong.auth.dto.SignupResponse;
-import com.samdasu.dodoong.auth.dto.SignupResult;
+import com.samdasu.dodoong.auth.dto.*;
 import com.samdasu.dodoong.auth.service.AuthService;
 import com.samdasu.dodoong.auth.util.CookieUtil;
 import com.samdasu.dodoong.global.response.code.SuccessCode;
@@ -26,7 +24,7 @@ public class AuthController {
     public ResponseEntity<BaseResponse<SignupResponse>> signup(
             @Valid @RequestBody SignupRequest request
     ) {
-        SignupResult result = authService.signup(request);
+        AuthResult result = authService.signup(request);
 
         ResponseCookie refreshTokenCookie =
                 cookieUtil.createRefreshTokenCookie(
@@ -50,4 +48,34 @@ public class AuthController {
                         response
                 ));
     }
+
+    @PostMapping("/login")
+    public ResponseEntity<BaseResponse<LoginResponse>> login(
+            @Valid @RequestBody LoginRequest request
+    ) {
+        AuthResult result = authService.login(request);
+
+        ResponseCookie refreshTokenCookie =
+                cookieUtil.createRefreshTokenCookie(
+                        result.refreshToken()
+                );
+
+        LoginResponse response = LoginResponse.of(
+                result.memberId(),
+                result.loginId(),
+                result.accessToken()
+        );
+
+        return ResponseEntity
+                .status(SuccessCode.OK.getHttpStatus())
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        refreshTokenCookie.toString()
+                )
+                .body(BaseResponse.of(
+                        SuccessCode.OK,
+                        response
+                ));
+    }
+
 }

@@ -1,8 +1,9 @@
 package com.samdasu.dodoong.auth.service;
 
 import com.samdasu.dodoong.auth.domain.RefreshToken;
+import com.samdasu.dodoong.auth.dto.AuthResult;
+import com.samdasu.dodoong.auth.dto.LoginRequest;
 import com.samdasu.dodoong.auth.dto.SignupRequest;
-import com.samdasu.dodoong.auth.dto.SignupResult;
 import com.samdasu.dodoong.auth.dto.TokenResponse;
 import com.samdasu.dodoong.auth.repository.RefreshTokenRepository;
 import com.samdasu.dodoong.global.exception.CustomException;
@@ -24,10 +25,9 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
 
     @Transactional
-    public SignupResult signup(SignupRequest request) {
+    public AuthResult signup(SignupRequest request) {
         validateDuplicateLoginId(request.loginId());
 
-        //비밀번호 암호화
         String encodedPassword =
                 passwordEncoder.encode(request.password());
 
@@ -41,18 +41,47 @@ public class AuthService {
         TokenResponse tokenResponse =
                 jwtTokenProvider.issueTokens(savedMember);
 
-        RefreshToken refreshToken = RefreshToken.create(
+        saveOrUpdateRefreshToken(
                 savedMember,
                 tokenResponse.refreshToken()
         );
 
-        refreshTokenRepository.save(refreshToken);
+        return createAuthResult(
+                savedMember,
+                tokenResponse
+        );
+    }
 
-        return new SignupResult(
-                savedMember.getMemberId(),
-                savedMember.getLoginId(),
-                tokenResponse.accessToken(),
+    @Transactional
+    public AuthResult login(LoginRequest request) {
+        Member member = memberRepository
+                .findByLoginId(request.loginId())
+                .orElseThrow(() ->
+                        new CustomException(
+                                ErrorCode.INVALID_LOGIN_INFORMATION
+                        )
+                );
+
+        if (!passwordEncoder.matches(
+                request.password(),
+                member.getPassword()
+        )) {
+            throw new CustomException(
+                    ErrorCode.INVALID_LOGIN_INFORMATION
+            );
+        }
+
+        TokenResponse tokenResponse =
+                jwtTokenProvider.issueTokens(member);
+
+        saveOrUpdateRefreshToken(
+                member,
                 tokenResponse.refreshToken()
+        );
+
+        return createAuthResult(
+                member,
+                tokenResponse
         );
     }
 
@@ -62,5 +91,35 @@ public class AuthService {
                     ErrorCode.DUPLICATE_LOGIN_ID
             );
         }
+    }
+
+    private void saveOrUpdateRefreshToken(
+            Member member,
+            String refreshToken
+    ) {
+        refreshTokenRepository
+                .findByMemberMemberId(member.getMemberId())
+                .ifPresentOrElse(
+                        savedToken ->
+                                savedToken.updateToken(refreshToken),
+                        () -> refreshTokenRepository.save(
+                                RefreshToken.create(
+                                        member,
+                                        refreshToken
+                                )
+                        )
+                );
+    }
+
+    private AuthResult createAuthResult(
+            Member member,
+            TokenResponse tokenResponse
+    ) {
+        return new AuthResult(
+                member.getMemberId(),
+                member.getLoginId(),
+                tokenResponse.accessToken(),
+                tokenResponse.refreshToken()
+        );
     }
 }
