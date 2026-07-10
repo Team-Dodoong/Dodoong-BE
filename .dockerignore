@@ -24,8 +24,6 @@ Dockerfile
 docker-compose*.yml
 
 # 로컬 설정 파일
-application.yml
-application-dev.yml
 *.env
 .env
 .env.*
