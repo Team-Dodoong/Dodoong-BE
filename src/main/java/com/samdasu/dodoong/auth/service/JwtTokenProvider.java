@@ -3,6 +3,8 @@ package com.samdasu.dodoong.auth.service;
 import com.samdasu.dodoong.auth.dto.TokenResponse;
 import com.samdasu.dodoong.global.config.JwtProperties;
 import com.samdasu.dodoong.member.domain.Member;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -27,35 +29,49 @@ public class JwtTokenProvider {
         byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.secret());
 
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
-        this.accessTokenExpiration =
-                jwtProperties.accessTokenExpiration();
-        this.refreshTokenExpiration =
-                jwtProperties.refreshTokenExpiration();
+        this.accessTokenExpiration = jwtProperties.accessTokenExpiration();
+        this.refreshTokenExpiration = jwtProperties.refreshTokenExpiration();
     }
 
     public TokenResponse issueTokens(Member member) {
         return new TokenResponse(
-                createToken(
-                        member,
-                        ACCESS_TOKEN_TYPE,
-                        accessTokenExpiration
-                ),
-                createToken(
-                        member,
-                        REFRESH_TOKEN_TYPE,
-                        refreshTokenExpiration
-                )
+                createToken(member, ACCESS_TOKEN_TYPE, accessTokenExpiration),
+                createToken(member, REFRESH_TOKEN_TYPE, refreshTokenExpiration)
         );
     }
 
-    private String createToken(
-            Member member,
-            String tokenType,
-            long expirationMillis
-    ) {
+    public boolean validateAccessToken(String token) {
+        try {
+            Claims claims = parseClaims(token);
+
+            String tokenType = claims.get(
+                    TOKEN_TYPE_CLAIM,
+                    String.class
+            );
+
+            return ACCESS_TOKEN_TYPE.equals(tokenType);
+        } catch (JwtException | IllegalArgumentException exception) {
+            return false;
+        }
+    }
+
+    public Long getMemberId(String token) {
+        Claims claims = parseClaims(token);
+
+        return Long.valueOf(claims.getSubject());
+    }
+
+    private Claims parseClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
+    private String createToken(Member member, String tokenType, long expirationMillis) {
         Instant now = Instant.now();
-        Instant expiration =
-                now.plusMillis(expirationMillis);
+        Instant expiration = now.plusMillis(expirationMillis);
 
         return Jwts.builder()
                 .subject(member.getId().toString())
