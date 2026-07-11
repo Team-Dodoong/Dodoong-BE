@@ -11,25 +11,45 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class CookieUtil {
 
+    private static final String ACCESS_TOKEN_COOKIE_NAME =
+            "accessToken";
+
     private static final String REFRESH_TOKEN_COOKIE_NAME =
             "refreshToken";
 
     private final JwtProperties jwtProperties;
 
+    public ResponseCookie createAccessTokenCookie(
+            String accessToken
+    ) {
+        return createCookie(
+                ACCESS_TOKEN_COOKIE_NAME,
+                accessToken,
+                jwtProperties.accessTokenExpiration()
+        );
+    }
+
     public ResponseCookie createRefreshTokenCookie(
             String refreshToken
     ) {
-        return ResponseCookie.from(
-                        REFRESH_TOKEN_COOKIE_NAME,
-                        refreshToken
-                )
+        return createCookie(
+                REFRESH_TOKEN_COOKIE_NAME,
+                refreshToken,
+                jwtProperties.refreshTokenExpiration()
+        );
+    }
+
+    private ResponseCookie createCookie(
+            String name,
+            String value,
+            long expirationMillis
+    ) {
+        return ResponseCookie.from(name, value)
                 .httpOnly(true)
                 .secure(false)
-                .sameSite("Lax")    //TODO: 배포 후 secure, sameSite 변경 필요
+                .sameSite("Lax")        //TODO: 배포 후 secure, sameSite 변경 필요
                 .path("/")
-                .maxAge(Duration.ofMillis(
-                        jwtProperties.refreshTokenExpiration()
-                ))
+                .maxAge(Duration.ofMillis(expirationMillis))
                 .build();
     }
 }

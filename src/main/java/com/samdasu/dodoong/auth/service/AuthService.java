@@ -28,8 +28,7 @@ public class AuthService {
     public AuthResult signup(SignupRequest request) {
         validateDuplicateLoginId(request.loginId());
 
-        String encodedPassword =
-                passwordEncoder.encode(request.password());
+        String encodedPassword = passwordEncoder.encode(request.password());
 
         Member member = Member.builder()
                 .loginId(request.loginId())
@@ -58,7 +57,7 @@ public class AuthService {
                 .findByLoginId(request.loginId())
                 .orElseThrow(() ->
                         new CustomException(
-                                ErrorCode.INVALID_LOGIN_INFORMATION
+                                ErrorCode.INVALID_CREDENTIALS
                         )
                 );
 
@@ -67,7 +66,7 @@ public class AuthService {
                 member.getPassword()
         )) {
             throw new CustomException(
-                    ErrorCode.INVALID_LOGIN_INFORMATION
+                    ErrorCode.INVALID_CREDENTIALS
             );
         }
 
@@ -98,7 +97,7 @@ public class AuthService {
             String refreshToken
     ) {
         refreshTokenRepository
-                .findByMemberMemberId(member.getMemberId())
+                .findByMemberId(member.getId())
                 .ifPresentOrElse(
                         savedToken ->
                                 savedToken.updateToken(refreshToken),
@@ -116,7 +115,7 @@ public class AuthService {
             TokenResponse tokenResponse
     ) {
         return new AuthResult(
-                member.getMemberId(),
+                member.getId(),
                 member.getLoginId(),
                 tokenResponse.accessToken(),
                 tokenResponse.refreshToken()

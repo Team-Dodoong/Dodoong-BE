@@ -14,13 +14,14 @@ import lombok.NoArgsConstructor;
 public class Member extends BaseTimeEntity {
 
     @Id
+    @Column(name = "member_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long memberId;
+    private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, length = 50)
     private String loginId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String password;
 
     @Column(unique = true)
@@ -33,22 +34,18 @@ public class Member extends BaseTimeEntity {
     private String introduction;
 
     @Column(nullable = false)
-    private Integer level;
+    private int level = 1;
 
     @Column(nullable = false)
-    private Integer experience;
+    private int experience = 0;
 
     @Column(nullable = false)
-    private Integer coin;
+    private int coin = 0;
 
 
     @Builder
     public Member(String loginId, String encodedPassword) {
         this.loginId = loginId;
         this.password = encodedPassword;
-
-        this.level = 0;
-        this.experience = 0;
-        this.coin = 0;
     }
 }

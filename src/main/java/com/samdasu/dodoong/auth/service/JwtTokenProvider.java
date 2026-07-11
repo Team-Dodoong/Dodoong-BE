@@ -34,38 +34,33 @@ public class JwtTokenProvider {
     }
 
     public TokenResponse issueTokens(Member member) {
-        String accessToken = createAccessToken(member);
-        String refreshToken = createRefreshToken(member);
-
         return new TokenResponse(
-                accessToken,
-                refreshToken
+                createToken(
+                        member,
+                        ACCESS_TOKEN_TYPE,
+                        accessTokenExpiration
+                ),
+                createToken(
+                        member,
+                        REFRESH_TOKEN_TYPE,
+                        refreshTokenExpiration
+                )
         );
     }
 
-    private String createAccessToken(Member member) {
+    private String createToken(
+            Member member,
+            String tokenType,
+            long expirationMillis
+    ) {
         Instant now = Instant.now();
         Instant expiration =
-                now.plusMillis(accessTokenExpiration);
+                now.plusMillis(expirationMillis);
 
         return Jwts.builder()
-                .subject(member.getMemberId().toString())
+                .subject(member.getId().toString())
                 .claim("loginId", member.getLoginId())
-                .claim(TOKEN_TYPE_CLAIM, ACCESS_TOKEN_TYPE)
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(expiration))
-                .signWith(secretKey)
-                .compact();
-    }
-
-    private String createRefreshToken(Member member) {
-        Instant now = Instant.now();
-        Instant expiration =
-                now.plusMillis(refreshTokenExpiration);
-
-        return Jwts.builder()
-                .subject(member.getMemberId().toString())
-                .claim(TOKEN_TYPE_CLAIM, REFRESH_TOKEN_TYPE)
+                .claim(TOKEN_TYPE_CLAIM, tokenType)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiration))
                 .signWith(secretKey)

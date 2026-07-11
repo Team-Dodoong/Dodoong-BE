@@ -1,6 +1,10 @@
 package com.samdasu.dodoong.auth.controller;
 
-import com.samdasu.dodoong.auth.dto.*;
+import com.samdasu.dodoong.auth.dto.AuthResult;
+import com.samdasu.dodoong.auth.dto.LoginRequest;
+import com.samdasu.dodoong.auth.dto.LoginResponse;
+import com.samdasu.dodoong.auth.dto.SignupRequest;
+import com.samdasu.dodoong.auth.dto.SignupResponse;
 import com.samdasu.dodoong.auth.service.AuthService;
 import com.samdasu.dodoong.auth.util.CookieUtil;
 import com.samdasu.dodoong.global.response.code.SuccessCode;
@@ -26,27 +30,34 @@ public class AuthController {
     ) {
         AuthResult result = authService.signup(request);
 
+        ResponseCookie accessTokenCookie =
+                cookieUtil.createAccessTokenCookie(
+                        result.accessToken()
+                );
+
         ResponseCookie refreshTokenCookie =
                 cookieUtil.createRefreshTokenCookie(
                         result.refreshToken()
                 );
 
         SignupResponse response = SignupResponse.of(
-                result.memberId(),
-                result.loginId(),
-                result.accessToken()
+                result.id(),
+                result.loginId()
         );
 
         return ResponseEntity
                 .status(SuccessCode.CREATED.getHttpStatus())
                 .header(
                         HttpHeaders.SET_COOKIE,
+                        accessTokenCookie.toString(),
                         refreshTokenCookie.toString()
                 )
-                .body(BaseResponse.of(
-                        SuccessCode.CREATED,
-                        response
-                ));
+                .body(
+                        BaseResponse.of(
+                                SuccessCode.CREATED,
+                                response
+                        )
+                );
     }
 
     @PostMapping("/login")
@@ -55,27 +66,33 @@ public class AuthController {
     ) {
         AuthResult result = authService.login(request);
 
+        ResponseCookie accessTokenCookie =
+                cookieUtil.createAccessTokenCookie(
+                        result.accessToken()
+                );
+
         ResponseCookie refreshTokenCookie =
                 cookieUtil.createRefreshTokenCookie(
                         result.refreshToken()
                 );
 
         LoginResponse response = LoginResponse.of(
-                result.memberId(),
-                result.loginId(),
-                result.accessToken()
+                result.id(),
+                result.loginId()
         );
 
         return ResponseEntity
                 .status(SuccessCode.OK.getHttpStatus())
                 .header(
                         HttpHeaders.SET_COOKIE,
+                        accessTokenCookie.toString(),
                         refreshTokenCookie.toString()
                 )
-                .body(BaseResponse.of(
-                        SuccessCode.OK,
-                        response
-                ));
+                .body(
+                        BaseResponse.of(
+                                SuccessCode.OK,
+                                response
+                        )
+                );
     }
-
 }

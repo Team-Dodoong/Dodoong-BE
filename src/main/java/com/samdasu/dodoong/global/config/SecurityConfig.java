@@ -30,7 +30,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
-                        .anyRequest().permitAll()
+                        .anyRequest().permitAll() //TODO: JWT 인증 구현 후 변경 필요
                 );
 
         return http.build();

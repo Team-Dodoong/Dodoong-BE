@@ -1,21 +1,13 @@
 package com.samdasu.dodoong.auth.dto;
 
 public record LoginResponse(
-        Long memberId,
-        String loginId,
-        String accessToken,
-        String tokenType
+        Long id,
+        String loginId
 ) {
     public static LoginResponse of(
-            Long memberId,
-            String loginId,
-            String accessToken
+            Long id,
+            String loginId
     ) {
-        return new LoginResponse(
-                memberId,
-                loginId,
-                accessToken,
-                "Bearer"
-        );
+        return new LoginResponse(id, loginId);
     }
 }
