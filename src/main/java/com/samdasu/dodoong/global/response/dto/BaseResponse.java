@@ -36,6 +36,10 @@ public class BaseResponse<T> {
         return of(SuccessCode.OK, null);
     }
 
+    public static <T> BaseResponse<T> created(T data) {
+        return of(SuccessCode.CREATED, data);
+    }
+
     public static <T> BaseResponse<T> created() {
         return of(SuccessCode.CREATED);
     }
