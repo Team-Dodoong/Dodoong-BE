@@ -1,0 +1,38 @@
+# Gradle
+.gradle/
+build/
+!**/build/libs/*.jar
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# 로컬 설정 파일
+*.env
+.env
+.env.*
+
+# 문서/로그
+*.md
+!README.md
+logs/
+*.log
+
+# 테스트
+src/test/
