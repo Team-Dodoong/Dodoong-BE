@@ -35,7 +35,11 @@ public enum ErrorCode implements BaseCode {
 
     // Member
     // 404 NOT FOUND
-    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하는 사용자가 없습니다.");
+    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하는 사용자가 없습니다."),
+
+    // DailyQuest
+    // 400 BAD REQUEST
+    ROUTINE_QUEST_DATE_NOT_FOUND(HttpStatus.BAD_REQUEST, "마감일까지 생성할 수 있는 반복 퀘스트 날짜가 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
