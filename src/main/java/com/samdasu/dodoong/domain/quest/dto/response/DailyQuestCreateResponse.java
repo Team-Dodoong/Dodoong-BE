@@ -7,27 +7,51 @@ import com.samdasu.dodoong.domain.routine.entity.Routine;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record DailyQuestCreateResponse(
+        boolean isRoutine,
         Long dailyQuestId,
         Long routineId,
         QuestCategory questCategory,
         String content,
-        LocalDate questDate,
-        boolean isChecked,
-        Set<DayOfWeek> repeatDays
+        LocalDate firstQuestDate,
+        LocalDate endDate,
+        Set<DayOfWeek> repeatDays,
+        int createdQuestCount
 ) {
-    public static DailyQuestCreateResponse of(DailyQuest dailyQuest, Routine routine) {
+    public static DailyQuestCreateResponse ofSingle(DailyQuest dailyQuest) {
         return new DailyQuestCreateResponse(
+                false,
                 dailyQuest.getId(),
-                routine != null ? routine.getId() : null,
+                null,
                 dailyQuest.getQuestCategory(),
                 dailyQuest.getContent(),
                 dailyQuest.getQuestDate(),
-                dailyQuest.isChecked(),
-                routine != null ? routine.getRepeatDays() : null
+                null,
+                null,
+                1
+        );
+    }
+
+    public static DailyQuestCreateResponse ofRoutine(
+            Routine routine,
+            List<DailyQuest> dailyQuests
+    ) {
+        DailyQuest firstQuest = dailyQuests.get(0);
+
+        return new DailyQuestCreateResponse(
+                true,
+                null,
+                routine.getId(),
+                routine.getQuestCategory(),
+                routine.getContent(),
+                firstQuest.getQuestDate(),
+                routine.getEndDate(),
+                Set.copyOf(routine.getRepeatDays()),
+                dailyQuests.size()
         );
     }
 }

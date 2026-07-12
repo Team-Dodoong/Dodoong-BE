@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -26,30 +28,73 @@ public class DailyQuestService {
     private final RoutineService routineService;
 
     @Transactional
-    public DailyQuestCreateResponse createDailyQuest(Long memberId, DailyQuestCreateRequest request) {
+    public DailyQuestCreateResponse createDailyQuest(Long memberId,
+                                                     DailyQuestCreateRequest request) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-        Routine routine = null;
-        LocalDate targetDate = request.questDate();
 
-        if (request.isRoutine()) {
-            routine = routineService.createRoutine(
-                    request.questCategory(),
-                    request.content(),
-                    request.repeatDays(),
-                    member
-            );
-            targetDate = routine.findNextQuestDate(request.questDate());
+        if (!request.isRoutine()) {
+            return createSingleQuest(member, request);
         }
+        return createRoutineQuests(member, request);
+    }
 
+    // 퀘스트 단일 생성
+    private DailyQuestCreateResponse createSingleQuest(
+            Member member,
+            DailyQuestCreateRequest request
+    ) {
         DailyQuest dailyQuest = DailyQuest.create(
                 request.questCategory(),
                 request.content(),
-                targetDate,
+                LocalDate.now(),
                 member,
-                routine
+                null
         );
         DailyQuest saved = dailyQuestRepository.save(dailyQuest);
-        return DailyQuestCreateResponse.of(saved, routine);
+        return DailyQuestCreateResponse.ofSingle(saved);
+    }
+
+    // 퀘스트 루틴 생성
+    private DailyQuestCreateResponse createRoutineQuests(Member member,
+                                                         DailyQuestCreateRequest request) {
+        LocalDate today = LocalDate.now();
+
+        Routine routine = routineService.createRoutine(
+                request.questCategory(),
+                request.content(),
+                request.endDate(),
+                request.repeatDays(),
+                member
+        );
+
+        LocalDate startDate = routine.findNextQuestDate(today);
+
+        List<DailyQuest> dailyQuests = createRoutineDailyQuests(member,routine, startDate);
+        List<DailyQuest> savedQuests = dailyQuestRepository.saveAll(dailyQuests);
+
+        return DailyQuestCreateResponse.ofRoutine(routine, savedQuests);
+    }
+
+    private List<DailyQuest> createRoutineDailyQuests(Member member,
+                                                      Routine routine,
+                                                      LocalDate startDate) {
+        List<DailyQuest> dailyQuests = new ArrayList<>();
+
+        LocalDate currentDate = startDate;
+
+        while(!currentDate.isAfter(routine.getEndDate())) {
+            if (routine.getRepeatDays().contains(currentDate.getDayOfWeek())) {
+                dailyQuests.add(DailyQuest.create(
+                        routine.getQuestCategory(),
+                        routine.getContent(),
+                        currentDate,
+                        member,
+                        routine
+                ));
+            }
+            currentDate = currentDate.plusDays(1);
+        }
+        return dailyQuests;
     }
 }
