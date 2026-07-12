@@ -3,6 +3,8 @@ package com.samdasu.dodoong.domain.routine.entity;
 import com.samdasu.dodoong.domain.member.entity.Member;
 import com.samdasu.dodoong.domain.quest.entity.QuestCategory;
 import com.samdasu.dodoong.global.entity.BaseTimeEntity;
+import com.samdasu.dodoong.global.exception.CustomException;
+import com.samdasu.dodoong.global.response.code.ErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -31,6 +33,9 @@ public class Routine extends BaseTimeEntity {
     @Column(nullable = false, length = 50)
     private String content;
 
+    @Column(nullable = false)
+    private LocalDate endDate;
+
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "repeat_days",
@@ -48,20 +53,24 @@ public class Routine extends BaseTimeEntity {
     private Routine(QuestCategory questCategory,
                     String content,
                     Set<DayOfWeek> repeatDays,
+                    LocalDate endDate,
                     Member member) {
         this.questCategory = questCategory;
         this.content = content;
+        this.endDate = endDate;
         this.repeatDays = repeatDays;
         this.member = member;
     }
 
     public static Routine create(QuestCategory questCategory,
                                  String content,
+                                 LocalDate endDate,
                                  Set<DayOfWeek> repeatDays,
                                  Member member) {
         return Routine.builder()
                 .questCategory(questCategory)
                 .content(content)
+                .endDate(endDate)
                 .repeatDays(repeatDays)
                 .member(member)
                 .build();
@@ -69,12 +78,12 @@ public class Routine extends BaseTimeEntity {
 
     public LocalDate findNextQuestDate(LocalDate date) {
         LocalDate target = date;
-        for (int i = 0; i < 7; i++) {
+        while (!target.isAfter(endDate)) {
             if (repeatDays.contains(target.getDayOfWeek())) {
                 return target;
             }
             target = target.plusDays(1);
         }
-        throw new IllegalStateException("반복 요일이 비어있습니다.");
+        throw new CustomException(ErrorCode.ROUTINE_QUEST_DATE_NOT_FOUND);
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.Set;
 
 @Service
@@ -21,9 +22,10 @@ public class RoutineService {
     @Transactional
     public Routine createRoutine(QuestCategory questCategory,
                                  String content,
+                                 LocalDate endDate,
                                  Set<DayOfWeek> repeatDays,
                                  Member member) {
-        Routine routine = Routine.create(questCategory, content, repeatDays, member);
+        Routine routine = Routine.create(questCategory, content, endDate, repeatDays, member);
         return routineRepository.save(routine);
     }
 }
