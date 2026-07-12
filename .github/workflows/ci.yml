@@ -42,3 +42,5 @@ jobs:
 
       - name: Build with Gradle
         run: ./gradlew clean build
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
