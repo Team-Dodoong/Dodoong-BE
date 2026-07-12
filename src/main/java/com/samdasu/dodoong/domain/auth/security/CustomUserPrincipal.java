@@ -1,4 +1,4 @@
-package com.samdasu.dodoong.auth.security;
+package com.samdasu.dodoong.domain.auth.security;
 
 public record CustomUserPrincipal(
         Long memberId,

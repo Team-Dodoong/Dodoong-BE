@@ -1,8 +1,5 @@
-package com.samdasu.dodoong.auth.filter;
+package com.samdasu.dodoong.domain.auth.security;
 
-import com.samdasu.dodoong.auth.security.CustomUserPrincipal;
-import com.samdasu.dodoong.auth.service.JwtTokenProvider;
-import com.samdasu.dodoong.auth.util.CookieUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;

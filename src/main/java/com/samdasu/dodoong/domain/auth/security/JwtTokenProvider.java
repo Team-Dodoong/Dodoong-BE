@@ -1,9 +1,8 @@
-package com.samdasu.dodoong.auth.service;
+package com.samdasu.dodoong.domain.auth.security;
 
-import com.samdasu.dodoong.auth.dto.TokenResponse;
-import com.samdasu.dodoong.auth.security.CustomUserPrincipal;
+import com.samdasu.dodoong.domain.auth.dto.TokenResponse;
 import com.samdasu.dodoong.global.config.JwtProperties;
-import com.samdasu.dodoong.member.domain.Member;
+import com.samdasu.dodoong.domain.member.entity.Member;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

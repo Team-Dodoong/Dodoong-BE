@@ -1,6 +1,6 @@
 package com.samdasu.dodoong.global.config;
 
-import com.samdasu.dodoong.auth.filter.JwtAuthenticationFilter;
+import com.samdasu.dodoong.domain.auth.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

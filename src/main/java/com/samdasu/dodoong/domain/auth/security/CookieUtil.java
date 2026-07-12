@@ -1,4 +1,4 @@
-package com.samdasu.dodoong.auth.util;
+package com.samdasu.dodoong.domain.auth.security;
 
 import com.samdasu.dodoong.global.config.JwtProperties;
 import lombok.RequiredArgsConstructor;

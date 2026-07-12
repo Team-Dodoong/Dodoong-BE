@@ -1,4 +1,4 @@
-package com.samdasu.dodoong.member.domain;
+package com.samdasu.dodoong.domain.member.entity;
 
 import com.samdasu.dodoong.global.entity.BaseTimeEntity;
 import jakarta.persistence.*;

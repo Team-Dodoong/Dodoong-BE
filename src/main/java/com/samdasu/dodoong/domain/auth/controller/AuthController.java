@@ -1,12 +1,12 @@
-package com.samdasu.dodoong.auth.controller;
+package com.samdasu.dodoong.domain.auth.controller;
 
-import com.samdasu.dodoong.auth.dto.AuthResult;
-import com.samdasu.dodoong.auth.dto.LoginRequest;
-import com.samdasu.dodoong.auth.dto.LoginResponse;
-import com.samdasu.dodoong.auth.dto.SignupRequest;
-import com.samdasu.dodoong.auth.dto.SignupResponse;
-import com.samdasu.dodoong.auth.service.AuthService;
-import com.samdasu.dodoong.auth.util.CookieUtil;
+import com.samdasu.dodoong.domain.auth.dto.AuthResult;
+import com.samdasu.dodoong.domain.auth.dto.LoginRequest;
+import com.samdasu.dodoong.domain.auth.dto.LoginResponse;
+import com.samdasu.dodoong.domain.auth.dto.SignupRequest;
+import com.samdasu.dodoong.domain.auth.dto.SignupResponse;
+import com.samdasu.dodoong.domain.auth.service.AuthService;
+import com.samdasu.dodoong.domain.auth.security.CookieUtil;
 import com.samdasu.dodoong.global.response.code.SuccessCode;
 import com.samdasu.dodoong.global.response.dto.BaseResponse;
 import jakarta.validation.Valid;

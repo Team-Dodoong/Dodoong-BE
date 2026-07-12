@@ -1,4 +1,4 @@
-package com.samdasu.dodoong.auth.dto;
+package com.samdasu.dodoong.domain.auth.dto;
 
 public record TokenResponse(
         String accessToken,

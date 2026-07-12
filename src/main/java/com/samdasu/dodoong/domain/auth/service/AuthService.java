@@ -1,15 +1,16 @@
-package com.samdasu.dodoong.auth.service;
+package com.samdasu.dodoong.domain.auth.service;
 
-import com.samdasu.dodoong.auth.domain.RefreshToken;
-import com.samdasu.dodoong.auth.dto.AuthResult;
-import com.samdasu.dodoong.auth.dto.LoginRequest;
-import com.samdasu.dodoong.auth.dto.SignupRequest;
-import com.samdasu.dodoong.auth.dto.TokenResponse;
-import com.samdasu.dodoong.auth.repository.RefreshTokenRepository;
+import com.samdasu.dodoong.domain.auth.entity.RefreshToken;
+import com.samdasu.dodoong.domain.auth.dto.AuthResult;
+import com.samdasu.dodoong.domain.auth.dto.LoginRequest;
+import com.samdasu.dodoong.domain.auth.dto.SignupRequest;
+import com.samdasu.dodoong.domain.auth.dto.TokenResponse;
+import com.samdasu.dodoong.domain.auth.repository.RefreshTokenRepository;
+import com.samdasu.dodoong.domain.auth.security.JwtTokenProvider;
 import com.samdasu.dodoong.global.exception.CustomException;
 import com.samdasu.dodoong.global.response.code.ErrorCode;
-import com.samdasu.dodoong.member.domain.Member;
-import com.samdasu.dodoong.member.repository.MemberRepository;
+import com.samdasu.dodoong.domain.member.entity.Member;
+import com.samdasu.dodoong.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

@@ -1,6 +1,6 @@
-package com.samdasu.dodoong.member.repository;
+package com.samdasu.dodoong.domain.member.repository;
 
-import com.samdasu.dodoong.member.domain.Member;
+import com.samdasu.dodoong.domain.member.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

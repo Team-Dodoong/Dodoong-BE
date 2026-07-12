@@ -1,6 +1,6 @@
-package com.samdasu.dodoong.auth.repository;
+package com.samdasu.dodoong.domain.auth.repository;
 
-import com.samdasu.dodoong.auth.domain.RefreshToken;
+import com.samdasu.dodoong.domain.auth.entity.RefreshToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

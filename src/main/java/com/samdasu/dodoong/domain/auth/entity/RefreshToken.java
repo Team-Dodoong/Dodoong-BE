@@ -1,7 +1,7 @@
-package com.samdasu.dodoong.auth.domain;
+package com.samdasu.dodoong.domain.auth.entity;
 
 import com.samdasu.dodoong.global.entity.BaseTimeEntity;
-import com.samdasu.dodoong.member.domain.Member;
+import com.samdasu.dodoong.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
