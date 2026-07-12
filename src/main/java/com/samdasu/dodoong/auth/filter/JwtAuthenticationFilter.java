@@ -1,17 +1,18 @@
 package com.samdasu.dodoong.auth.filter;
 
+import com.samdasu.dodoong.auth.security.CustomUserPrincipal;
 import com.samdasu.dodoong.auth.service.JwtTokenProvider;
 import com.samdasu.dodoong.auth.util.CookieUtil;
-import com.samdasu.dodoong.member.domain.Member;
-import com.samdasu.dodoong.member.repository.MemberRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.authentication
+        .UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context
+        .SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -21,11 +22,9 @@ import java.util.Collections;
 
 @Component
 @RequiredArgsConstructor
-public class JwtAuthenticationFilter
-        extends OncePerRequestFilter {
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final MemberRepository memberRepository;
 
     @Override
     protected void doFilterInternal(
@@ -38,7 +37,7 @@ public class JwtAuthenticationFilter
 
         if (
                 accessToken != null &&
-                        jwtTokenProvider.validateAccessToken(accessToken) &&
+                        !accessToken.isBlank() &&
                         SecurityContextHolder
                                 .getContext()
                                 .getAuthentication() == null
@@ -50,13 +49,12 @@ public class JwtAuthenticationFilter
     }
 
     private void setAuthentication(String accessToken) {
-        Long memberId = jwtTokenProvider.getMemberId(accessToken);
-
-        memberRepository.findById(memberId)
-                .ifPresent(member -> {
+        jwtTokenProvider
+                .extractAccessTokenPrincipal(accessToken)
+                .ifPresent(principal -> {
                     UsernamePasswordAuthenticationToken
                             authentication =
-                            createAuthentication(member);
+                            createAuthentication(principal);
 
                     SecurityContextHolder
                             .getContext()
@@ -65,18 +63,15 @@ public class JwtAuthenticationFilter
     }
 
     private UsernamePasswordAuthenticationToken
-    createAuthentication(Member member) {
-
+    createAuthentication(CustomUserPrincipal principal) {
         return new UsernamePasswordAuthenticationToken(
-                member,
+                principal,
                 null,
                 Collections.emptyList()
         );
     }
 
-    private String resolveAccessToken(
-            HttpServletRequest request
-    ) {
+    private String resolveAccessToken(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
 
         if (cookies == null) {

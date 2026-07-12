@@ -1,6 +1,7 @@
 package com.samdasu.dodoong.auth.service;
 
 import com.samdasu.dodoong.auth.dto.TokenResponse;
+import com.samdasu.dodoong.auth.security.CustomUserPrincipal;
 import com.samdasu.dodoong.global.config.JwtProperties;
 import com.samdasu.dodoong.member.domain.Member;
 import io.jsonwebtoken.Claims;
@@ -13,12 +14,17 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Optional;
 
 @Component
 public class JwtTokenProvider {
 
     private static final String TOKEN_TYPE_CLAIM = "tokenType";
+
+    private static final String LOGIN_ID_CLAIM = "loginId";
+
     private static final String ACCESS_TOKEN_TYPE = "ACCESS";
+
     private static final String REFRESH_TOKEN_TYPE = "REFRESH";
 
     private final SecretKey secretKey;
@@ -26,7 +32,9 @@ public class JwtTokenProvider {
     private final long refreshTokenExpiration;
 
     public JwtTokenProvider(JwtProperties jwtProperties) {
-        byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.secret());
+        byte[] keyBytes = Decoders.BASE64.decode(
+                jwtProperties.secret()
+        );
 
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
         this.accessTokenExpiration = jwtProperties.accessTokenExpiration();
@@ -40,25 +48,54 @@ public class JwtTokenProvider {
         );
     }
 
-    public boolean validateAccessToken(String token) {
+    public Optional<CustomUserPrincipal>
+    extractAccessTokenPrincipal(String token) {
         try {
             Claims claims = parseClaims(token);
 
-            String tokenType = claims.get(
-                    TOKEN_TYPE_CLAIM,
-                    String.class
-            );
+            String tokenType = claims.get(TOKEN_TYPE_CLAIM, String.class);
 
-            return ACCESS_TOKEN_TYPE.equals(tokenType);
-        } catch (JwtException | IllegalArgumentException exception) {
+            if (!ACCESS_TOKEN_TYPE.equals(tokenType)) {
+                return Optional.empty();
+            }
+
+            Long memberId = Long.valueOf(claims.getSubject());
+
+            String loginId = claims.get(LOGIN_ID_CLAIM, String.class);
+
+            return Optional.of(
+                    new CustomUserPrincipal(
+                            memberId,
+                            loginId
+                    )
+            );
+        } catch (
+                JwtException |
+                IllegalArgumentException exception
+        ) {
+            return Optional.empty();
+        }
+    }
+
+    public boolean validateRefreshToken(String token) {
+        try {
+            Claims claims = parseClaims(token);
+
+            String tokenType = claims.get(TOKEN_TYPE_CLAIM, String.class);
+
+            return REFRESH_TOKEN_TYPE.equals(tokenType);
+        } catch (
+                JwtException |
+                IllegalArgumentException exception
+        ) {
             return false;
         }
     }
 
     public Long getMemberId(String token) {
-        Claims claims = parseClaims(token);
-
-        return Long.valueOf(claims.getSubject());
+        return Long.valueOf(
+                parseClaims(token).getSubject()
+        );
     }
 
     private Claims parseClaims(String token) {
@@ -75,7 +112,7 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .subject(member.getId().toString())
-                .claim("loginId", member.getLoginId())
+                .claim(LOGIN_ID_CLAIM, member.getLoginId())
                 .claim(TOKEN_TYPE_CLAIM, tokenType)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiration))

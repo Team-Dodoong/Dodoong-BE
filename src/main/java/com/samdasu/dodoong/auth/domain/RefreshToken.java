@@ -33,18 +33,12 @@ public class RefreshToken extends BaseTimeEntity {
     @Column(nullable = false, length = 500)
     private String token;
 
-    private RefreshToken(
-            Member member,
-            String token
-    ) {
+    private RefreshToken(Member member, String token) {
         this.member = member;
         this.token = token;
     }
 
-    public static RefreshToken create(
-            Member member,
-            String token
-    ) {
+    public static RefreshToken create(Member member, String token) {
         return new RefreshToken(member, token);
     }
 
