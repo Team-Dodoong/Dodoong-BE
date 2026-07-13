@@ -1,7 +1,9 @@
-package com.samdasu.dodoong.domain.auth.security;
+package com.samdasu.dodoong.global.util;
 
 import com.samdasu.dodoong.global.config.JwtProperties;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
