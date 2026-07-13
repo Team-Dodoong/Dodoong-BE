@@ -13,4 +13,5 @@ public interface RefreshTokenRepository
     Optional<RefreshToken> findByToken(String token);
 
     void deleteByMemberId(Long id);
+    void deleteByToken(String token);
 }

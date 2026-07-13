@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-
+    //TODO: refreshToken redis에 저장하도록 변경 필요
     private final MemberRepository memberRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
@@ -83,6 +83,15 @@ public class AuthService {
                 member,
                 tokenResponse
         );
+    }
+
+    @Transactional
+    public void logout(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            return;
+        }
+
+        refreshTokenRepository.deleteByToken(refreshToken);
     }
 
     private void validateDuplicateLoginId(String loginId) {

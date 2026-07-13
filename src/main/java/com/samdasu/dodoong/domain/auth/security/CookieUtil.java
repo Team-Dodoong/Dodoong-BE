@@ -11,17 +11,11 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class CookieUtil {
 
-    public static final String ACCESS_TOKEN_COOKIE_NAME =
-            "accessToken";
-
-    public static final String REFRESH_TOKEN_COOKIE_NAME =
-            "refreshToken";
-
+    public static final String ACCESS_TOKEN_COOKIE_NAME = "accessToken";
+    public static final String REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
     private final JwtProperties jwtProperties;
 
-    public ResponseCookie createAccessTokenCookie(
-            String accessToken
-    ) {
+    public ResponseCookie createAccessTokenCookie(String accessToken) {
         return createCookie(
                 ACCESS_TOKEN_COOKIE_NAME,
                 accessToken,
@@ -29,14 +23,20 @@ public class CookieUtil {
         );
     }
 
-    public ResponseCookie createRefreshTokenCookie(
-            String refreshToken
-    ) {
+    public ResponseCookie createRefreshTokenCookie(String refreshToken) {
         return createCookie(
                 REFRESH_TOKEN_COOKIE_NAME,
                 refreshToken,
                 jwtProperties.refreshTokenExpiration()
         );
+    }
+
+    public ResponseCookie deleteAccessTokenCookie() {
+        return deleteCookie(ACCESS_TOKEN_COOKIE_NAME);
+    }
+
+    public ResponseCookie deleteRefreshTokenCookie() {
+        return deleteCookie(REFRESH_TOKEN_COOKIE_NAME);
     }
 
     private ResponseCookie createCookie(
@@ -50,6 +50,16 @@ public class CookieUtil {
                 .sameSite("Lax")        //TODO: 배포 후 secure, sameSite 변경 필요
                 .path("/")
                 .maxAge(Duration.ofMillis(expirationMillis))
+                .build();
+    }
+
+    private ResponseCookie deleteCookie(String name) {
+        return ResponseCookie.from(name, "")
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Lax")    //TODO: 배포 후 secure, sameSite 변경 필요
+                .path("/")
+                .maxAge(Duration.ZERO)
                 .build();
     }
 }
