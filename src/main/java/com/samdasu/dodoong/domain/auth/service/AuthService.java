@@ -2,9 +2,9 @@ package com.samdasu.dodoong.domain.auth.service;
 
 import com.samdasu.dodoong.domain.auth.entity.RefreshToken;
 import com.samdasu.dodoong.domain.auth.dto.AuthResult;
-import com.samdasu.dodoong.domain.auth.dto.LoginRequest;
-import com.samdasu.dodoong.domain.auth.dto.SignupRequest;
-import com.samdasu.dodoong.domain.auth.dto.TokenResponse;
+import com.samdasu.dodoong.domain.auth.dto.request.LoginRequest;
+import com.samdasu.dodoong.domain.auth.dto.request.SignupRequest;
+import com.samdasu.dodoong.domain.auth.dto.response.TokenResponse;
 import com.samdasu.dodoong.domain.auth.repository.RefreshTokenRepository;
 import com.samdasu.dodoong.domain.auth.security.JwtTokenProvider;
 import com.samdasu.dodoong.global.exception.CustomException;

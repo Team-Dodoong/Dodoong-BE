@@ -1,6 +1,6 @@
 package com.samdasu.dodoong.domain.auth.security;
 
-import com.samdasu.dodoong.domain.auth.dto.TokenResponse;
+import com.samdasu.dodoong.domain.auth.dto.response.TokenResponse;
 import com.samdasu.dodoong.global.config.JwtProperties;
 import com.samdasu.dodoong.domain.member.entity.Member;
 import io.jsonwebtoken.Claims;

@@ -1,10 +1,10 @@
 package com.samdasu.dodoong.domain.auth.controller;
 
 import com.samdasu.dodoong.domain.auth.dto.AuthResult;
-import com.samdasu.dodoong.domain.auth.dto.LoginRequest;
-import com.samdasu.dodoong.domain.auth.dto.LoginResponse;
-import com.samdasu.dodoong.domain.auth.dto.SignupRequest;
-import com.samdasu.dodoong.domain.auth.dto.SignupResponse;
+import com.samdasu.dodoong.domain.auth.dto.request.LoginRequest;
+import com.samdasu.dodoong.domain.auth.dto.response.LoginResponse;
+import com.samdasu.dodoong.domain.auth.dto.request.SignupRequest;
+import com.samdasu.dodoong.domain.auth.dto.response.SignupResponse;
 import com.samdasu.dodoong.domain.auth.service.AuthService;
 import com.samdasu.dodoong.domain.auth.security.CookieUtil;
 import com.samdasu.dodoong.global.response.code.SuccessCode;

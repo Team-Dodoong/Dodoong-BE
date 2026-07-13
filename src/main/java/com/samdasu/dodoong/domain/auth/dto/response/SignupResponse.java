@@ -1,4 +1,4 @@
-package com.samdasu.dodoong.domain.auth.dto;
+package com.samdasu.dodoong.domain.auth.dto.response;
 
 public record SignupResponse(
         Long id,
