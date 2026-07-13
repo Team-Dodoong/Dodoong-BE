@@ -31,7 +31,11 @@ public enum ErrorCode implements BaseCode {
     // 400 BAD REQUEST
     DUPLICATE_LOGIN_ID(HttpStatus.BAD_REQUEST, "이미 사용 중인 아이디입니다."),
     // 401 UNAUTHORIZED
-    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED,"아이디 또는 비밀번호가 올바르지 않습니다.");
+    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED,"아이디 또는 비밀번호가 올바르지 않습니다."),
+
+    // Member
+    // 404 NOT FOUND
+    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하는 사용자가 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
