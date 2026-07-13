@@ -22,7 +22,7 @@ public class DailyQuest extends BaseTimeEntity {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 30)
     private QuestCategory questCategory;
 
     @Column(nullable = false, length = 100)
