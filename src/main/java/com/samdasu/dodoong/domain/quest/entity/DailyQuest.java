@@ -13,7 +13,10 @@ import java.time.LocalDate;
 
 @Entity
 @Getter
-@Table(name = "daily_quests")
+@Table(name = "daily_quests",
+uniqueConstraints = @UniqueConstraint(
+        name = "uk_daily_quests_routine_quest_date",
+        columnNames = {"routine_id", "quest_date"}))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class DailyQuest extends BaseTimeEntity {
 
