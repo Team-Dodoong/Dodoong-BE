@@ -41,6 +41,15 @@ public class CookieUtil {
         );
     }
 
+    public void addAuthCookies(HttpServletResponse response,
+                               String accessToken,
+                               String refreshToken) {
+        response.addHeader(HttpHeaders.SET_COOKIE,
+                createAccessTokenCookie(accessToken).toString());
+        response.addHeader(HttpHeaders.SET_COOKIE,
+                createRefreshTokenCookie(refreshToken).toString());
+    }
+
     private ResponseCookie createCookie(
             String name,
             String value,
