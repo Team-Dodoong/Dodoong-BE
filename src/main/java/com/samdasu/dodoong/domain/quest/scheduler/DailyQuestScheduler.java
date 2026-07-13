@@ -6,9 +6,12 @@ import com.samdasu.dodoong.domain.routine.entity.Routine;
 import com.samdasu.dodoong.domain.routine.repository.RoutineRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -17,15 +20,22 @@ import java.util.Set;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class DailyQuestScheduler {
     private static final ZoneId ZONE_KST = ZoneId.of("Asia/Seoul");
 
     private final RoutineRepository routineRepository;
     private final DailyQuestRepository dailyQuestRepository;
+    private final TransactionTemplate transactionTemplate;
+
+    public DailyQuestScheduler(RoutineRepository routineRepository,
+                               DailyQuestRepository dailyQuestRepository,
+                               PlatformTransactionManager transactionManager) {
+        this.routineRepository = routineRepository;
+        this.dailyQuestRepository = dailyQuestRepository;
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
+    }
 
     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
-    @Transactional
     public void generateTodayQuests() {
         LocalDate today = LocalDate.now(ZONE_KST);
 
@@ -39,24 +49,30 @@ public class DailyQuestScheduler {
         List<Long> routineIds = todayRoutines.stream().map(Routine::getId).toList();
         Set<Long> alreadyCreated = dailyQuestRepository.findExistingRoutineIds(today, routineIds);
 
-        List<DailyQuest> toCreate = todayRoutines.stream()
-                .filter(r -> !alreadyCreated.contains(r.getId()))
-                .map(r -> DailyQuest.create(
-                        r.getQuestCategory(),
-                        r.getContent(),
-                        today,
-                        r.getMember(),
-                        r
-                ))
-                .toList();
+        int created = 0;
+        int skippedPreCheck = 0;
+        int skippedRace = 0;
 
-        if (toCreate.isEmpty()) {
-            log.info("[DailyQuestScheduler] {}의 routines {}개가 모두 이미 생성되었습니다.", today, todayRoutines.size());
-            return;
+        for (Routine routine : todayRoutines) {
+            if (alreadyCreated.contains(routine.getId())) {
+                skippedPreCheck++;
+                continue;
+            }
+            try {
+                transactionTemplate.executeWithoutResult(status ->
+                        dailyQuestRepository.save(DailyQuest.create(
+                                routine.getQuestCategory(),
+                                routine.getContent(),
+                                today,
+                                routine.getMember(),
+                                routine)));
+                created++;
+            } catch (DataIntegrityViolationException e) {
+                skippedRace++;
+                log.debug("[DailyQuestScheduler] 중복 스킵: routineId={}, date={}", routine.getId(), today);
+            }
         }
-
-        dailyQuestRepository.saveAll(toCreate);
-        log.info("[DailyQuestScheduler] {}의 일일 퀘스트 {}개를 생성했습니다. (전체 루틴={}, 생성 제외={})",
-                today, toCreate.size(), todayRoutines.size(), alreadyCreated.size());
+        log.info("[DailyQuestScheduler] {} → created={}, skipped(pre-check)={}, skipped(race)={}",
+                today, created, skippedPreCheck, skippedRace);
     }
 }
