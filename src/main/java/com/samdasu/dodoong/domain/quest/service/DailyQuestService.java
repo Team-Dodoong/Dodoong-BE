@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,7 +59,7 @@ public class DailyQuestService {
     // 퀘스트 루틴 생성
     private DailyQuestCreateResponse createRoutineQuests(Member member,
                                                          DailyQuestCreateRequest request) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
         Routine routine = routineService.createRoutine(
                 request.questCategory(),
