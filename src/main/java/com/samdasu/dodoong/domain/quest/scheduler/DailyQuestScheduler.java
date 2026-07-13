@@ -29,9 +29,7 @@ public class DailyQuestScheduler {
     public void generateTodayQuests() {
         LocalDate today = LocalDate.now(ZONE_KST);
 
-        List<Routine> todayRoutines = routineRepository.findAllByEndDateGreaterThanEqual(today).stream()
-                .filter(r -> r.getRepeatDays().contains(today.getDayOfWeek()))
-                .toList();
+        List<Routine> todayRoutines = routineRepository.findActiveRoutinesForDay(today, today.getDayOfWeek());
 
         if (todayRoutines.isEmpty()) {
             log.info("[DailyQuestScheduler] {}에 실행할 routine이 없습니다.", today);
