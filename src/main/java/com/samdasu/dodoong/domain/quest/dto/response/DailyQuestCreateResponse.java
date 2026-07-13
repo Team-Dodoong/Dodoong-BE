@@ -19,8 +19,7 @@ public record DailyQuestCreateResponse(
         String content,
         LocalDate firstQuestDate,
         LocalDate endDate,
-        Set<DayOfWeek> repeatDays,
-        int createdQuestCount
+        Set<DayOfWeek> repeatDays
 ) {
     public static DailyQuestCreateResponse ofSingle(DailyQuest dailyQuest) {
         return new DailyQuestCreateResponse(
@@ -31,27 +30,23 @@ public record DailyQuestCreateResponse(
                 dailyQuest.getContent(),
                 dailyQuest.getQuestDate(),
                 null,
-                null,
-                1
+                null
         );
     }
 
     public static DailyQuestCreateResponse ofRoutine(
             Routine routine,
-            List<DailyQuest> dailyQuests
+            LocalDate firstQuestDate
     ) {
-        DailyQuest firstQuest = dailyQuests.get(0);
-
         return new DailyQuestCreateResponse(
                 true,
                 null,
                 routine.getId(),
                 routine.getQuestCategory(),
                 routine.getContent(),
-                firstQuest.getQuestDate(),
+                firstQuestDate,
                 routine.getEndDate(),
-                Set.copyOf(routine.getRepeatDays()),
-                dailyQuests.size()
+                Set.copyOf(routine.getRepeatDays())
         );
     }
 }

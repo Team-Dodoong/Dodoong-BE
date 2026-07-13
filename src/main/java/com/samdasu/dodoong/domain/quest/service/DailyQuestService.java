@@ -68,33 +68,18 @@ public class DailyQuestService {
                 member
         );
 
-        LocalDate startDate = routine.findNextQuestDate(today);
+        LocalDate firstQuestDate = routine.findNextQuestDate(today);
 
-        List<DailyQuest> dailyQuests = createRoutineDailyQuests(member,routine, startDate);
-        List<DailyQuest> savedQuests = dailyQuestRepository.saveAll(dailyQuests);
-
-        return DailyQuestCreateResponse.ofRoutine(routine, savedQuests);
-    }
-
-    private List<DailyQuest> createRoutineDailyQuests(Member member,
-                                                      Routine routine,
-                                                      LocalDate startDate) {
-        List<DailyQuest> dailyQuests = new ArrayList<>();
-
-        LocalDate currentDate = startDate;
-
-        while(!currentDate.isAfter(routine.getEndDate())) {
-            if (routine.getRepeatDays().contains(currentDate.getDayOfWeek())) {
-                dailyQuests.add(DailyQuest.create(
-                        routine.getQuestCategory(),
-                        routine.getContent(),
-                        currentDate,
-                        member,
-                        routine
-                ));
-            }
-            currentDate = currentDate.plusDays(1);
+        if (firstQuestDate.equals(today)) {
+            dailyQuestRepository.save(DailyQuest.create(
+                    routine.getQuestCategory(),
+                    routine.getContent(),
+                    today,
+                    member,
+                    routine
+            ));
         }
-        return dailyQuests;
+
+        return DailyQuestCreateResponse.ofRoutine(routine, firstQuestDate);
     }
 }
