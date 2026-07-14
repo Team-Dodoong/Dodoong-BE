@@ -11,7 +11,8 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "party_members")
+@Table(name = "party_members",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"member_id", "party_id"}))
 public class PartyMember extends BaseTimeEntity {
 
     @Id
