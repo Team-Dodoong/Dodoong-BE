@@ -1,7 +1,9 @@
-package com.samdasu.dodoong.domain.auth.security;
+package com.samdasu.dodoong.global.util;
 
 import com.samdasu.dodoong.global.config.JwtProperties;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
@@ -37,6 +39,15 @@ public class CookieUtil {
                 refreshToken,
                 jwtProperties.refreshTokenExpiration()
         );
+    }
+
+    public void addAuthCookies(HttpServletResponse response,
+                               String accessToken,
+                               String refreshToken) {
+        response.addHeader(HttpHeaders.SET_COOKIE,
+                createAccessTokenCookie(accessToken).toString());
+        response.addHeader(HttpHeaders.SET_COOKIE,
+                createRefreshTokenCookie(refreshToken).toString());
     }
 
     private ResponseCookie createCookie(
