@@ -6,9 +6,10 @@ import com.samdasu.dodoong.domain.auth.dto.response.LoginResponse;
 import com.samdasu.dodoong.domain.auth.dto.request.SignupRequest;
 import com.samdasu.dodoong.domain.auth.dto.response.SignupResponse;
 import com.samdasu.dodoong.domain.auth.service.AuthService;
-import com.samdasu.dodoong.domain.auth.security.CookieUtil;
+import com.samdasu.dodoong.global.util.CookieUtil;
 import com.samdasu.dodoong.global.response.code.SuccessCode;
 import com.samdasu.dodoong.global.response.dto.BaseResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -25,75 +26,27 @@ public class AuthController {
     private final CookieUtil cookieUtil;
 
     @PostMapping("/signup")
-    public ResponseEntity<BaseResponse<SignupResponse>> signup(
-            @Valid @RequestBody SignupRequest request
+    public BaseResponse<SignupResponse> signup(
+            @Valid @RequestBody SignupRequest request,
+            HttpServletResponse httpResponse
     ) {
         AuthResult result = authService.signup(request);
+        cookieUtil.addAuthCookies(httpResponse, result.accessToken(), result.refreshToken());
+        SignupResponse response = SignupResponse.of(result.id(), request.loginId());
 
-        ResponseCookie accessTokenCookie =
-                cookieUtil.createAccessTokenCookie(
-                        result.accessToken()
-                );
-
-        ResponseCookie refreshTokenCookie =
-                cookieUtil.createRefreshTokenCookie(
-                        result.refreshToken()
-                );
-
-        SignupResponse response = SignupResponse.of(
-                result.id(),
-                result.loginId()
-        );
-
-        return ResponseEntity
-                .status(SuccessCode.CREATED.getHttpStatus())
-                .header(
-                        HttpHeaders.SET_COOKIE,
-                        accessTokenCookie.toString(),
-                        refreshTokenCookie.toString()
-                )
-                .body(
-                        BaseResponse.of(
-                                SuccessCode.CREATED,
-                                response
-                        )
-                );
+        return BaseResponse.created(response);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<BaseResponse<LoginResponse>> login(
-            @Valid @RequestBody LoginRequest request
+    public BaseResponse<LoginResponse> login(
+            @Valid @RequestBody LoginRequest request,
+            HttpServletResponse httpResponse
     ) {
         AuthResult result = authService.login(request);
+        cookieUtil.addAuthCookies(httpResponse, result.accessToken(), result.refreshToken());
+        LoginResponse response = LoginResponse.of(result.id(), result.loginId());
 
-        ResponseCookie accessTokenCookie =
-                cookieUtil.createAccessTokenCookie(
-                        result.accessToken()
-                );
-
-        ResponseCookie refreshTokenCookie =
-                cookieUtil.createRefreshTokenCookie(
-                        result.refreshToken()
-                );
-
-        LoginResponse response = LoginResponse.of(
-                result.id(),
-                result.loginId()
-        );
-
-        return ResponseEntity
-                .status(SuccessCode.OK.getHttpStatus())
-                .header(
-                        HttpHeaders.SET_COOKIE,
-                        accessTokenCookie.toString(),
-                        refreshTokenCookie.toString()
-                )
-                .body(
-                        BaseResponse.of(
-                                SuccessCode.OK,
-                                response
-                        )
-                );
+        return BaseResponse.ok(response);
     }
 
 
