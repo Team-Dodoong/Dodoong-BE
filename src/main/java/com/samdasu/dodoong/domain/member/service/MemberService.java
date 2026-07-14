@@ -7,7 +7,6 @@ import com.samdasu.dodoong.domain.member.entity.Member;
 import com.samdasu.dodoong.domain.member.repository.MemberRepository;
 import com.samdasu.dodoong.global.exception.CustomException;
 import com.samdasu.dodoong.global.response.code.ErrorCode;
-import com.samdasu.dodoong.global.storage.FileStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

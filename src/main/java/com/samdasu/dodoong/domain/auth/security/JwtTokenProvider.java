@@ -62,12 +62,7 @@ public class JwtTokenProvider {
 
             String loginId = claims.get(LOGIN_ID_CLAIM, String.class);
 
-            return Optional.of(
-                    new CustomUserPrincipal(
-                            memberId,
-                            loginId
-                    )
-            );
+            return Optional.of(new CustomUserPrincipal(memberId, loginId));
         } catch (
                 JwtException |
                 IllegalArgumentException exception

@@ -9,7 +9,6 @@ import com.samdasu.dodoong.global.response.dto.BaseResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,7 +21,7 @@ public class MemberController {
     private final MemberService memberService;
 
     @GetMapping("/me")
-    public ResponseEntity<BaseResponse<MemberResponse>> getMyInfo(
+    public BaseResponse<MemberResponse> getMyInfo(
             @AuthenticationPrincipal
             CustomUserPrincipal principal
     ) {
@@ -31,13 +30,12 @@ public class MemberController {
                         principal.memberId()
                 );
 
-        return ResponseEntity.ok(
-                BaseResponse.ok(response)
-        );
+        return BaseResponse.ok(response);
+
     }
 
     @PatchMapping(value="/me",consumes = MediaType.MULTIPART_FORM_DATA_VALUE )
-    public ResponseEntity<BaseResponse<ProfileUpdateResponse>>
+    public BaseResponse<ProfileUpdateResponse>
     updateProfile(
             @AuthenticationPrincipal
             CustomUserPrincipal principal,
@@ -56,8 +54,6 @@ public class MemberController {
                         profileImage
                 );
 
-        return ResponseEntity.ok(
-                BaseResponse.ok(response)
-        );
+        return BaseResponse.ok(response);
     }
 }

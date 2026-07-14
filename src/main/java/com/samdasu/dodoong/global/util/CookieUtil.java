@@ -50,6 +50,17 @@ public class CookieUtil {
                 createRefreshTokenCookie(refreshToken).toString());
     }
 
+    public void deleteAuthCookies(HttpServletResponse response) {
+        response.addHeader(
+                HttpHeaders.SET_COOKIE,
+                deleteAccessTokenCookie().toString()
+        );
+        response.addHeader(
+                HttpHeaders.SET_COOKIE,
+                deleteRefreshTokenCookie().toString()
+        );
+    }
+
     private ResponseCookie createCookie(
             String name,
             String value,
