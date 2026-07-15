@@ -3,9 +3,11 @@ package com.samdasu.dodoong.domain.quest.service;
 import com.samdasu.dodoong.domain.member.entity.Member;
 import com.samdasu.dodoong.domain.member.repository.MemberRepository;
 import com.samdasu.dodoong.domain.quest.dto.request.DailyQuestCreateRequest;
+import com.samdasu.dodoong.domain.quest.dto.response.DailyQuestCalendarResponse;
 import com.samdasu.dodoong.domain.quest.dto.response.DailyQuestCreateResponse;
 import com.samdasu.dodoong.domain.quest.repository.DailyQuestRepository;
 import com.samdasu.dodoong.domain.quest.entity.DailyQuest;
+import com.samdasu.dodoong.domain.quest.repository.projection.DailyQuestCountProjection;
 import com.samdasu.dodoong.domain.routine.entity.Routine;
 import com.samdasu.dodoong.domain.routine.service.RoutineService;
 import com.samdasu.dodoong.global.exception.CustomException;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +41,18 @@ public class DailyQuestService {
             return createSingleQuest(member, request);
         }
         return createRoutineQuests(member, request);
+    }
+
+    public DailyQuestCalendarResponse getCalendar(Long memberId, int year, int month) {
+
+        YearMonth yearMonth = YearMonth.of(year, month);
+        LocalDate startDate = yearMonth.atDay(1);
+        LocalDate endDate = yearMonth.atEndOfMonth();
+
+        List<DailyQuestCountProjection> projections =
+                dailyQuestRepository.countDailyQuestsByPeriod(memberId, startDate, endDate);
+
+        return DailyQuestCalendarResponse.of(year, month, projections);
     }
 
     // 퀘스트 단일 생성
