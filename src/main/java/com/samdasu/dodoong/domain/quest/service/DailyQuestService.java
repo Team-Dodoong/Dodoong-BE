@@ -5,9 +5,11 @@ import com.samdasu.dodoong.domain.member.repository.MemberRepository;
 import com.samdasu.dodoong.domain.quest.dto.request.DailyQuestCreateRequest;
 import com.samdasu.dodoong.domain.quest.dto.response.DailyQuestCalendarResponse;
 import com.samdasu.dodoong.domain.quest.dto.response.DailyQuestCreateResponse;
+import com.samdasu.dodoong.domain.quest.dto.response.DailyQuestListResponse;
 import com.samdasu.dodoong.domain.quest.repository.DailyQuestRepository;
 import com.samdasu.dodoong.domain.quest.entity.DailyQuest;
 import com.samdasu.dodoong.domain.quest.repository.projection.DailyQuestCountProjection;
+import com.samdasu.dodoong.domain.quest.repository.projection.DailyQuestSummaryProjection;
 import com.samdasu.dodoong.domain.routine.entity.Routine;
 import com.samdasu.dodoong.domain.routine.service.RoutineService;
 import com.samdasu.dodoong.global.exception.CustomException;
@@ -53,6 +55,13 @@ public class DailyQuestService {
                 dailyQuestRepository.countDailyQuestsByPeriod(memberId, startDate, endDate);
 
         return DailyQuestCalendarResponse.of(year, month, projections);
+    }
+
+    public DailyQuestListResponse getDailyQuestByDate(Long memberId, LocalDate date) {
+        List<DailyQuestSummaryProjection> projections =
+                dailyQuestRepository.findSummariesByDate(memberId, date);
+
+        return DailyQuestListResponse.of(date, projections);
     }
 
     // 퀘스트 단일 생성

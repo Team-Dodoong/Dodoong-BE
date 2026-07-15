@@ -4,6 +4,7 @@ import com.samdasu.dodoong.domain.auth.security.CustomUserPrincipal;
 import com.samdasu.dodoong.domain.quest.dto.request.DailyQuestCreateRequest;
 import com.samdasu.dodoong.domain.quest.dto.response.DailyQuestCalendarResponse;
 import com.samdasu.dodoong.domain.quest.dto.response.DailyQuestCreateResponse;
+import com.samdasu.dodoong.domain.quest.dto.response.DailyQuestListResponse;
 import com.samdasu.dodoong.domain.quest.entity.DailyQuest;
 import com.samdasu.dodoong.domain.quest.service.DailyQuestService;
 import com.samdasu.dodoong.global.response.dto.BaseResponse;
@@ -11,9 +12,12 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @Validated
 @RestController
@@ -38,6 +42,14 @@ public class DailyQuestController {
             @RequestParam("year") @Min(2000) @Max(3000) int year,
             @RequestParam("month") @Min(1) @Max(12) int month) {
         DailyQuestCalendarResponse response = dailyQuestService.getCalendar(principal.memberId(), year, month);
+        return BaseResponse.ok(response);
+    }
+
+    @GetMapping("/calander")
+    public BaseResponse<DailyQuestListResponse> getDailyQuestByDate(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        DailyQuestListResponse response = dailyQuestService.getDailyQuestByDate(principal.memberId(), date);
         return BaseResponse.ok(response);
     }
 }
