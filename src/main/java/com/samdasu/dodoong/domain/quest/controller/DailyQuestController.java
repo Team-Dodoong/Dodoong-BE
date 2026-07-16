@@ -45,7 +45,7 @@ public class DailyQuestController {
         return BaseResponse.ok(response);
     }
 
-    @GetMapping("/calander")
+    @GetMapping
     public BaseResponse<DailyQuestListResponse> getDailyQuestByDate(
             @AuthenticationPrincipal CustomUserPrincipal principal,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
