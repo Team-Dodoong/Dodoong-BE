@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface MemberCharacterRepository
         extends JpaRepository<MemberCharacter, Long> {
@@ -17,4 +18,11 @@ public interface MemberCharacterRepository
             where mc.member.id = :memberId
             """)
     List<MemberCharacter> findAllByMemberId(@Param("memberId") Long memberId);
+
+    //캐릭터 상세 조회
+    Optional<MemberCharacter>
+    findByMemberIdAndCharacterItemId(
+            Long memberId,
+            Long characterId
+    );
 }
