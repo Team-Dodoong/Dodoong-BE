@@ -1,5 +1,6 @@
 package com.samdasu.dodoong.global.config;
 
+import com.samdasu.dodoong.domain.auth.security.CustomAccessDeniedHandler;
 import com.samdasu.dodoong.domain.auth.security.CustomAuthenticationEntryPoint;
 import com.samdasu.dodoong.domain.auth.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -39,9 +41,13 @@ public class SecurityConfig {
                         )
                 )
                 .exceptionHandling(exception ->
-                        exception.authenticationEntryPoint(
-                                customAuthenticationEntryPoint
-                        )
+                        exception
+                                .authenticationEntryPoint(
+                                        customAuthenticationEntryPoint
+                                )
+                                .accessDeniedHandler(
+                                        customAccessDeniedHandler
+                                )
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
