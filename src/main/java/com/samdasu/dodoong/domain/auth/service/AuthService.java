@@ -7,6 +7,10 @@ import com.samdasu.dodoong.domain.auth.dto.SignupRequest;
 import com.samdasu.dodoong.domain.auth.dto.TokenResponse;
 import com.samdasu.dodoong.domain.auth.repository.RefreshTokenRepository;
 import com.samdasu.dodoong.domain.auth.security.JwtTokenProvider;
+import com.samdasu.dodoong.domain.character.entity.CharacterItem;
+import com.samdasu.dodoong.domain.character.entity.MemberCharacter;
+import com.samdasu.dodoong.domain.character.repository.CharacterItemRepository;
+import com.samdasu.dodoong.domain.character.repository.MemberCharacterRepository;
 import com.samdasu.dodoong.global.exception.CustomException;
 import com.samdasu.dodoong.global.response.code.ErrorCode;
 import com.samdasu.dodoong.domain.member.entity.Member;
@@ -24,6 +28,9 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final CharacterItemRepository characterItemRepository;
+    private final MemberCharacterRepository memberCharacterRepository;
+    private static final Long DEFAULT_CHARACTER_ID = 1L;
 
     @Transactional
     public AuthResult signup(SignupRequest request) {
@@ -37,6 +44,15 @@ public class AuthService {
                 .build();
 
         Member savedMember = memberRepository.save(member);
+
+        //기본 캐릭터 지급
+        CharacterItem defaultCharacter = characterItemRepository.findById(DEFAULT_CHARACTER_ID)
+                .orElseThrow(() -> new CustomException(ErrorCode.CHARACTER_NOT_FOUND));
+
+        MemberCharacter memberCharacter = new MemberCharacter(savedMember, defaultCharacter);
+
+        memberCharacter.equip();
+        memberCharacterRepository.save(memberCharacter);
 
         TokenResponse tokenResponse =
                 jwtTokenProvider.issueTokens(savedMember);

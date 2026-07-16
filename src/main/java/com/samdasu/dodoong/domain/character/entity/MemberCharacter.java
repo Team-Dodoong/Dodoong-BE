@@ -8,13 +8,8 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Table(name = "member_character",
-        uniqueConstraints = {@UniqueConstraint(
-                        name = "uk_member_character",
-                        columnNames = {"member_id", "character_id"}
-                )
-        }
-)
+@Table(name = "member_character", uniqueConstraints = {@UniqueConstraint(
+        name = "uk_member_character", columnNames = {"member_id", "character_id"})})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberCharacter {
 
@@ -24,7 +19,7 @@ public class MemberCharacter {
     private Long id;
 
     @Column(name = "is_equipped", nullable = false)
-    private boolean equipped = false;
+    private boolean isEquipped = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
@@ -40,10 +35,10 @@ public class MemberCharacter {
     }
 
     public void equip() {
-        this.equipped = true;
+        this.isEquipped = true;
     }
 
     public void unequip() {
-        this.equipped = false;
+        this.isEquipped = false;
     }
 }
