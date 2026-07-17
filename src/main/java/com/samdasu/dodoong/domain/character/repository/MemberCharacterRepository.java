@@ -25,4 +25,15 @@ public interface MemberCharacterRepository
             Long memberId,
             Long characterId
     );
+
+    @Query("""
+            select mc
+            from MemberCharacter mc
+            join fetch mc.characterItem
+            where mc.member.id = :memberId
+                and mc.isEquipped = true
+            """)
+    Optional<MemberCharacter> findEquippedByMemberId(
+            @Param("memberId") Long memberId
+    );
 }

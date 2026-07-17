@@ -3,6 +3,7 @@ package com.samdasu.dodoong.domain.character.service;
 import com.samdasu.dodoong.domain.character.dto.response.CharacterDetailResponse;
 import com.samdasu.dodoong.domain.character.dto.response.CharacterListItemResponse;
 import com.samdasu.dodoong.domain.character.dto.response.CharacterListResponse;
+import com.samdasu.dodoong.domain.character.dto.response.EquippedCharacterResponse;
 import com.samdasu.dodoong.domain.character.entity.CharacterItem;
 import com.samdasu.dodoong.domain.character.entity.MemberCharacter;
 import com.samdasu.dodoong.domain.character.repository.CharacterItemRepository;
@@ -26,6 +27,7 @@ public class CharacterService {
     private final CharacterItemRepository characterItemRepository;
     private final MemberCharacterRepository memberCharacterRepository;
 
+    //전체 캐릭터 목록 조회
     public CharacterListResponse getCharacters(Long memberId) {
         List<CharacterItem> characterItems = characterItemRepository.findAll();
 
@@ -55,6 +57,7 @@ public class CharacterService {
         return CharacterListResponse.from(characters);
     }
 
+    //캐릭터 상세 조회
     public CharacterDetailResponse getCharacter(Long memberId, Long characterId) {
         CharacterItem characterItem = characterItemRepository.findById(characterId).
                 orElseThrow(() -> new CustomException(ErrorCode.CHARACTER_NOT_FOUND));
@@ -71,5 +74,13 @@ public class CharacterService {
                 owned,
                 isEquipped
         );
+    }
+
+    //장착 중인 캐릭터 조회
+    public EquippedCharacterResponse getEquippedCharacter(Long memberId){
+        MemberCharacter memberCharacter = memberCharacterRepository.findEquippedByMemberId(memberId)
+                .orElseThrow(()-> new CustomException(ErrorCode.EQUIPPED_CHARACTER_NOT_FOUND));
+
+        return EquippedCharacterResponse.from(memberCharacter.getCharacterItem());
     }
 }

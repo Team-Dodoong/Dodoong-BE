@@ -40,6 +40,7 @@ public enum ErrorCode implements BaseCode {
     //Character
     //404 NOT FOUND
     CHARACTER_NOT_FOUND(HttpStatus.NOT_FOUND,"존재하지 않는 캐릭터입니다."),
+    EQUIPPED_CHARACTER_NOT_FOUND(HttpStatus.NOT_FOUND, "장착 중인 캐릭터가 존재하지 않습니다."),
 
     // DailyQuest
     // 400 BAD REQUEST
