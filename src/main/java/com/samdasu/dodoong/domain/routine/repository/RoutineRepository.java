@@ -15,4 +15,12 @@ public interface RoutineRepository extends JpaRepository<Routine, Long> {
     JOIN FETCH r.member
     WHERE r.endDate >= :today AND :dayOfWeek MEMBER OF r.repeatDays""")
     List<Routine> findActiveRoutinesForDay(LocalDate today, DayOfWeek dayOfWeek);
+
+    @Query("""
+    SELECT DISTINCT r FROM Routine r
+    JOIN FETCH r.repeatDays
+    WHERE r.member.id = :memberId AND r.endDate >= :date
+    """)
+    List<Routine> findActiveRoutineWithRepeatDays(@Param("memberId") Long memberId,
+                                                  @Param("date") LocalDate date);
 }
