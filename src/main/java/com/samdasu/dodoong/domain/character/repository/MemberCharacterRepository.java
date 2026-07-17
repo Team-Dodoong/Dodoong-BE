@@ -20,8 +20,7 @@ public interface MemberCharacterRepository
     List<MemberCharacter> findAllByMemberId(@Param("memberId") Long memberId);
 
     //캐릭터 상세 조회
-    Optional<MemberCharacter>
-    findByMemberIdAndCharacterItemId(
+    Optional<MemberCharacter> findByMemberIdAndCharacterItemId(
             Long memberId,
             Long characterId
     );
@@ -36,4 +35,7 @@ public interface MemberCharacterRepository
     Optional<MemberCharacter> findEquippedByMemberId(
             @Param("memberId") Long memberId
     );
+
+
+    Long memberId(Long memberId);
 }

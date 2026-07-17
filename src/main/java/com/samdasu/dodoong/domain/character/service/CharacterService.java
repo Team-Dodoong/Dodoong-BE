@@ -1,9 +1,6 @@
 package com.samdasu.dodoong.domain.character.service;
 
-import com.samdasu.dodoong.domain.character.dto.response.CharacterDetailResponse;
-import com.samdasu.dodoong.domain.character.dto.response.CharacterListItemResponse;
-import com.samdasu.dodoong.domain.character.dto.response.CharacterListResponse;
-import com.samdasu.dodoong.domain.character.dto.response.EquippedCharacterResponse;
+import com.samdasu.dodoong.domain.character.dto.response.*;
 import com.samdasu.dodoong.domain.character.entity.CharacterItem;
 import com.samdasu.dodoong.domain.character.entity.MemberCharacter;
 import com.samdasu.dodoong.domain.character.repository.CharacterItemRepository;
@@ -82,5 +79,15 @@ public class CharacterService {
                 .orElseThrow(()-> new CustomException(ErrorCode.EQUIPPED_CHARACTER_NOT_FOUND));
 
         return EquippedCharacterResponse.from(memberCharacter.getCharacterItem());
+    }
+
+    //보유 캐릭터 조회
+    public CharacterListResponse getOwnedCharacters(Long memberId){
+        List<OwnedCharacterListItemResponse> characters = memberCharacterRepository.findAllByMemberId(memberId)
+                .stream()
+                .map(OwnedCharacterListItemResponse::from)
+                .toList();
+
+        return new CharacterListResponse(characters);
     }
 }

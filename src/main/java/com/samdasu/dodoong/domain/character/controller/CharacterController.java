@@ -44,4 +44,12 @@ public class CharacterController {
 
         return BaseResponse.ok(response);
     }
+
+    //보유 캐릭터 조회
+    @GetMapping("/me")
+    public BaseResponse<CharacterListResponse> getOwnedCharacters(@AuthenticationPrincipal CustomUserPrincipal principal){
+        CharacterListResponse response = characterService.getOwnedCharacters(principal.memberId());
+
+        return BaseResponse.ok(response);
+    }
 }
