@@ -93,10 +93,26 @@ public class DailyQuestService {
     }
 
     public DailyQuestListResponse getDailyQuestByDate(Long memberId, LocalDate date) {
-        List<DailyQuestSummaryProjection> projections =
-                dailyQuestRepository.findSummariesByDate(memberId, date);
+        LocalDate today = LocalDate.now(ZONE_KST);
 
-        return DailyQuestListResponse.of(date, projections);
+        // 오늘까지: 실제 데이터
+        if (!date.isAfter(today)) {
+            List<DailyQuestSummaryProjection> projections =
+                    dailyQuestRepository.findSummariesByDate(memberId, date);
+            return DailyQuestListResponse.of(date, projections);
+        }
+
+        // 미래: 가상 전개
+        List<Routine> activeRoutines =
+                routineRepository.findActiveRoutineWithRepeatDays(memberId, date);
+
+        List<DailyQuestListResponse.QuestSummary> virtualQuests = activeRoutines.stream()
+                .filter(r -> r.getRepeatDays().contains(date.getDayOfWeek()))
+                .filter(r -> !date.isAfter(r.getEndDate()))
+                .map(DailyQuestListResponse.QuestSummary::virtualFrom)
+                .toList();
+
+        return new DailyQuestListResponse(date, virtualQuests);
     }
 
     // 퀘스트 단일 생성

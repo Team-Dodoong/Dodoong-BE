@@ -3,6 +3,7 @@ package com.samdasu.dodoong.domain.quest.dto.response;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.samdasu.dodoong.domain.quest.entity.QuestCategory;
 import com.samdasu.dodoong.domain.quest.repository.projection.DailyQuestSummaryProjection;
+import com.samdasu.dodoong.domain.routine.entity.Routine;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -29,7 +30,19 @@ public record DailyQuestListResponse(
                     projection.getRoutineId()
             );
         }
+
+        public static QuestSummary virtualFrom(Routine routine) {
+            return new QuestSummary(
+                    null,
+                    routine.getQuestCategory(),
+                    routine.getContent(),
+                    false,
+                    true,
+                    routine.getId()
+            );
+        }
     }
+
     public static DailyQuestListResponse of(LocalDate date,
                                             List<DailyQuestSummaryProjection> projections) {
         List<QuestSummary> quests = projections.stream()
