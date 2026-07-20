@@ -65,27 +65,29 @@ public class AuthService {
     @Transactional
     public void logout(Long memberId, String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) {
-            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+            return;
         }
 
         if (!jwtTokenProvider.validateRefreshToken(refreshToken)) {
-            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+            return;
         }
 
-        // Refresh Token subject와 현재 인증 사용자 비교
         Long tokenMemberId = jwtTokenProvider.getMemberId(refreshToken);
 
         if (!memberId.equals(tokenMemberId)) {
-            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+            return;
         }
 
         RefreshToken savedRefreshToken = refreshTokenRepository
                 .findByToken(refreshToken)
-                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN));
+                .orElse(null);
 
-        // DB에 저장된 Refresh Token 소유자와 현재 인증 사용자 비교
+        if (savedRefreshToken == null) {
+            return;
+        }
+
         if (!savedRefreshToken.getMember().getId().equals(memberId)) {
-            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+            return;
         }
 
         refreshTokenRepository.delete(savedRefreshToken);
