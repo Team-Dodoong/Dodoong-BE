@@ -38,92 +38,76 @@ public class AuthService {
 
         Member savedMember = memberRepository.save(member);
 
-        TokenResponse tokenResponse =
-                jwtTokenProvider.issueTokens(savedMember);
+        TokenResponse tokenResponse = jwtTokenProvider.issueTokens(savedMember);
 
-        saveOrUpdateRefreshToken(
-                savedMember,
-                tokenResponse.refreshToken()
-        );
+        saveOrUpdateRefreshToken(savedMember, tokenResponse.refreshToken());
 
-        return createAuthResult(
-                savedMember,
-                tokenResponse
-        );
+        return createAuthResult(savedMember, tokenResponse);
     }
 
     @Transactional
     public AuthResult login(LoginRequest request) {
         Member member = memberRepository
                 .findByLoginId(request.loginId())
-                .orElseThrow(() ->
-                        new CustomException(
-                                ErrorCode.INVALID_CREDENTIALS
-                        )
-                );
+                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_CREDENTIALS));
 
-        if (!passwordEncoder.matches(
-                request.password(),
-                member.getPassword()
-        )) {
-            throw new CustomException(
-                    ErrorCode.INVALID_CREDENTIALS
-            );
+        if (!passwordEncoder.matches(request.password(), member.getPassword())) {
+            throw new CustomException(ErrorCode.INVALID_CREDENTIALS);
         }
 
-        TokenResponse tokenResponse =
-                jwtTokenProvider.issueTokens(member);
+        TokenResponse tokenResponse = jwtTokenProvider.issueTokens(member);
 
-        saveOrUpdateRefreshToken(
-                member,
-                tokenResponse.refreshToken()
-        );
+        saveOrUpdateRefreshToken(member, tokenResponse.refreshToken());
 
-        return createAuthResult(
-                member,
-                tokenResponse
-        );
+        return createAuthResult(member, tokenResponse);
     }
 
     @Transactional
-    public void logout(String refreshToken) {
+    public void logout(Long memberId, String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) {
-            return;
+            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
-        refreshTokenRepository.deleteByToken(refreshToken);
+        if (!jwtTokenProvider.validateRefreshToken(refreshToken)) {
+            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        // Refresh Token subject와 현재 인증 사용자 비교
+        Long tokenMemberId = jwtTokenProvider.getMemberId(refreshToken);
+
+        if (!memberId.equals(tokenMemberId)) {
+            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        RefreshToken savedRefreshToken = refreshTokenRepository
+                .findByToken(refreshToken)
+                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN));
+
+        // DB에 저장된 Refresh Token 소유자와 현재 인증 사용자 비교
+        if (!savedRefreshToken.getMember().getId().equals(memberId)) {
+            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        refreshTokenRepository.delete(savedRefreshToken);
+        //TODO: Redis 도입 후 Access Token 블랙리스트 등록 추가
     }
 
     private void validateDuplicateLoginId(String loginId) {
         if (memberRepository.existsByLoginId(loginId)) {
-            throw new CustomException(
-                    ErrorCode.DUPLICATE_LOGIN_ID
-            );
+            throw new CustomException(ErrorCode.DUPLICATE_LOGIN_ID);
         }
     }
 
-    private void saveOrUpdateRefreshToken(
-            Member member,
-            String refreshToken
-    ) {
+    private void saveOrUpdateRefreshToken(Member member, String refreshToken) {
         refreshTokenRepository
                 .findByMemberId(member.getId())
                 .ifPresentOrElse(
-                        savedToken ->
-                                savedToken.updateToken(refreshToken),
-                        () -> refreshTokenRepository.save(
-                                RefreshToken.create(
-                                        member,
-                                        refreshToken
-                                )
-                        )
+                        savedToken -> savedToken.updateToken(refreshToken),
+                        () -> refreshTokenRepository.save(RefreshToken.create(member, refreshToken))
                 );
     }
 
-    private AuthResult createAuthResult(
-            Member member,
-            TokenResponse tokenResponse
-    ) {
+    private AuthResult createAuthResult(Member member, TokenResponse tokenResponse) {
         return new AuthResult(
                 member.getId(),
                 member.getLoginId(),

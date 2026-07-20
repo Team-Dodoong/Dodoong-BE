@@ -1,5 +1,6 @@
 package com.samdasu.dodoong.global.config;
 
+import com.samdasu.dodoong.domain.auth.security.CustomAccessDeniedHandler;
 import com.samdasu.dodoong.domain.auth.security.CustomAuthenticationEntryPoint;
 import com.samdasu.dodoong.domain.auth.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -34,18 +36,16 @@ public class SecurityConfig {
                 .formLogin(formLogin -> formLogin.disable())
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(
-                                SessionCreationPolicy.STATELESS
-                        )
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .exceptionHandling(exception ->
-                        exception.authenticationEntryPoint(
-                                customAuthenticationEntryPoint
-                        )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler)
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/**",
+                                "/api/auth/login",
+                                "/api/auth/signup",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()

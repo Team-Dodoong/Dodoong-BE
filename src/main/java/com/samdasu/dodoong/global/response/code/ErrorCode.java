@@ -30,6 +30,8 @@ public enum ErrorCode implements BaseCode {
     //Auth
     // 401 UNAUTHORIZED
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED,"아이디 또는 비밀번호가 올바르지 않습니다."),
+    // 401 UNAUTHORIZED
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 리프레시 토큰입니다."),
     // 409 CONFLICT
     DUPLICATE_LOGIN_ID(HttpStatus.CONFLICT, "이미 사용 중인 아이디입니다."),
 

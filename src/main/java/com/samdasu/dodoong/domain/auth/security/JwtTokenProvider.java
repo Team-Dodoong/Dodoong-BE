@@ -31,9 +31,7 @@ public class JwtTokenProvider {
     private final long refreshTokenExpiration;
 
     public JwtTokenProvider(JwtProperties jwtProperties) {
-        byte[] keyBytes = Decoders.BASE64.decode(
-                jwtProperties.secret()
-        );
+        byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.secret());
 
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
         this.accessTokenExpiration = jwtProperties.accessTokenExpiration();
@@ -47,8 +45,7 @@ public class JwtTokenProvider {
         );
     }
 
-    public Optional<CustomUserPrincipal>
-    extractAccessTokenPrincipal(String token) {
+    public Optional<CustomUserPrincipal> extractAccessTokenPrincipal(String token) {
         try {
             Claims claims = parseClaims(token);
 
@@ -87,9 +84,7 @@ public class JwtTokenProvider {
     }
 
     public Long getMemberId(String token) {
-        return Long.valueOf(
-                parseClaims(token).getSubject()
-        );
+        return Long.valueOf(parseClaims(token).getSubject());
     }
 
     private Claims parseClaims(String token) {
