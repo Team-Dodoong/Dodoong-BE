@@ -37,13 +37,13 @@ services:
 
   nginx:
     image: nginx:1.27-alpine
-    container_name: default-nginx
+    container_name: dodoong-nginx
     restart: unless-stopped
     depends_on:
       - app
     ports:
       - "80:80"
-      - "443:443"
+#      - "443:443" # HTTPS 붙일 때 해제
     volumes:
       - ./nginx/dodoong.conf:/etc/nginx/conf.d/default.conf:ro
 
