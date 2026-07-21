@@ -35,4 +35,9 @@ public interface MemberCharacterRepository
     Optional<MemberCharacter> findEquippedByMemberId(
             @Param("memberId") Long memberId
     );
+
+    boolean existsByMemberIdAndCharacterItemId(
+            Long memberId,
+            Long characterId
+    );
 }

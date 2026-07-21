@@ -5,6 +5,8 @@ import com.samdasu.dodoong.domain.character.entity.CharacterItem;
 import com.samdasu.dodoong.domain.character.entity.MemberCharacter;
 import com.samdasu.dodoong.domain.character.repository.CharacterItemRepository;
 import com.samdasu.dodoong.domain.character.repository.MemberCharacterRepository;
+import com.samdasu.dodoong.domain.member.entity.Member;
+import com.samdasu.dodoong.domain.member.repository.MemberRepository;
 import com.samdasu.dodoong.global.exception.CustomException;
 import com.samdasu.dodoong.global.response.code.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ public class CharacterService {
 
     private final CharacterItemRepository characterItemRepository;
     private final MemberCharacterRepository memberCharacterRepository;
+    private final MemberRepository memberRepository;
 
     //전체 캐릭터 목록 조회
     public CharacterListResponse getCharacters(Long memberId) {
@@ -89,5 +92,33 @@ public class CharacterService {
                 .toList();
 
         return new CharacterListResponse(characters);
+    }
+
+    //캐릭터 구매
+    @Transactional
+    public CharacterPurchaseResponse purchaseCharacter(Long memberId, Long characterId) {
+        Member member = memberRepository.findByIdForUpdate(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        CharacterItem characterItem = characterItemRepository.findById(characterId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CHARACTER_NOT_FOUND));
+
+        boolean alreadyOwned = memberCharacterRepository.existsByMemberIdAndCharacterItemId(memberId, characterId);
+
+        if (alreadyOwned) {
+            throw new CustomException(ErrorCode.ALREADY_OWNED_CHARACTER);
+        }
+
+        if (!member.hasEnoughCoin(characterItem.getPrice())) {
+            throw new CustomException(ErrorCode.INSUFFICIENT_COIN);
+        }
+
+        member.spendCoin(characterItem.getPrice());
+
+        MemberCharacter memberCharacter = new MemberCharacter(member, characterItem);
+
+        memberCharacterRepository.save(memberCharacter);
+
+        return CharacterPurchaseResponse.of(characterItem, member);
     }
 }

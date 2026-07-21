@@ -44,10 +44,15 @@ public enum ErrorCode implements BaseCode {
     DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "이미 사용 중인 닉네임입니다."),
 
     //Character
-    //404 NOT FOUND
+    // 400 BAD REQUEST
+    INSUFFICIENT_COIN(HttpStatus.BAD_REQUEST, "코인이 부족합니다."),
+
+    // 404 NOT FOUND
     CHARACTER_NOT_FOUND(HttpStatus.NOT_FOUND,"존재하지 않는 캐릭터입니다."),
     EQUIPPED_CHARACTER_NOT_FOUND(HttpStatus.NOT_FOUND, "장착 중인 캐릭터가 존재하지 않습니다."),
 
+    // 409 CONFLICT
+    ALREADY_OWNED_CHARACTER(HttpStatus.CONFLICT, "이미 보유 중인 캐릭터입니다."),
     // DailyQuest
     // 400 BAD REQUEST
     ROUTINE_QUEST_DATE_NOT_FOUND(HttpStatus.BAD_REQUEST, "마감일까지 생성할 수 있는 반복 퀘스트 날짜가 없습니다.");
