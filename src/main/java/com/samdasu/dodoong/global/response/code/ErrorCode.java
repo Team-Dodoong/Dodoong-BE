@@ -48,6 +48,13 @@ public enum ErrorCode implements BaseCode {
     CHARACTER_NOT_FOUND(HttpStatus.NOT_FOUND,"존재하지 않는 캐릭터입니다."),
     EQUIPPED_CHARACTER_NOT_FOUND(HttpStatus.NOT_FOUND, "장착 중인 캐릭터가 존재하지 않습니다."),
 
+    // Party
+    // 401 UNAUTHORIZED
+    FORBIDDEN_UPDATE_PARTY(HttpStatus.UNAUTHORIZED, "파티 수정 권한이 없습니다."),
+    // 404 NOT FOUND
+    PARTY_NOT_FOUND(HttpStatus.NOT_FOUND,"존재하지 않는 파티입니다."),
+    PARTY_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND,"파티에 해당 회원이 존재하지 않습니다."),
+
     // DailyQuest
     // 400 BAD REQUEST
     ROUTINE_QUEST_DATE_NOT_FOUND(HttpStatus.BAD_REQUEST, "마감일까지 생성할 수 있는 반복 퀘스트 날짜가 없습니다.");

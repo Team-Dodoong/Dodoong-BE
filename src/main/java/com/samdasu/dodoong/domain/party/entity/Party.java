@@ -1,5 +1,6 @@
 package com.samdasu.dodoong.domain.party.entity;
 
+import com.samdasu.dodoong.domain.party.dto.request.PartyUpdateRequestDto;
 import com.samdasu.dodoong.global.converter.CategoryListConverter;
 import com.samdasu.dodoong.global.entity.BaseTimeEntity;
 import jakarta.persistence.*;
@@ -60,5 +61,16 @@ public class Party extends BaseTimeEntity {
         this.isPublic = isPublic;
         this.partyPassword = partyPassword;
         this.questContent = questContent;
+    }
+
+    public void updateParty(
+            PartyUpdateRequestDto dto,
+            String encodedPassword
+    ) {
+        this.description = dto.description();
+        this.maxMembers = dto.maxMembers();
+        this.isPublic = dto.isPublic();
+        this.partyPassword = dto.isPublic() ? null : encodedPassword;
+        this.imageUrl = dto.imageUrl();
     }
 }
