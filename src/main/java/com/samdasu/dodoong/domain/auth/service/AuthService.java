@@ -20,6 +20,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -78,15 +80,8 @@ public class AuthService {
     }
 
     @Transactional
-    public void logout(
-            Long authenticatedMemberId,
-            String accessToken,
-            String refreshToken
-    ) {
-        // 현재 Access Token을 남은 유효시간 동안 블랙리스트에 등록
-        if (accessToken != null && !accessToken.isBlank()) {
-            accessTokenBlacklistRepository.save(accessToken, jwtTokenProvider.getRemainingExpiration(accessToken));
-        }
+    public void logout(Long authenticatedMemberId, String accessToken, String refreshToken) {
+        blacklistAccessToken(accessToken);
 
         // Refresh Token이 없거나 잘못됐더라도 Access Token 로그아웃은 완료
         if (refreshToken == null || refreshToken.isBlank()) {
@@ -130,5 +125,19 @@ public class AuthService {
                 tokenResponse.accessToken(),
                 tokenResponse.refreshToken()
         );
+    }
+
+    private void blacklistAccessToken(String accessToken) {
+        if (accessToken == null || accessToken.isBlank()) {
+            return;
+        }
+
+        Duration remainingExpiration = jwtTokenProvider.getRemainingExpiration(accessToken);
+
+        if (remainingExpiration.isZero() || remainingExpiration.isNegative()) {
+            return;
+        }
+
+        accessTokenBlacklistRepository.save(accessToken, remainingExpiration);
     }
 }

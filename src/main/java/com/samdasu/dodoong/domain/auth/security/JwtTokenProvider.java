@@ -4,6 +4,7 @@ import com.samdasu.dodoong.domain.auth.dto.response.TokenResponse;
 import com.samdasu.dodoong.global.config.JwtProperties;
 import com.samdasu.dodoong.domain.member.entity.Member;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -15,6 +16,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
+
 
 @Component
 public class JwtTokenProvider {
@@ -84,12 +86,16 @@ public class JwtTokenProvider {
         }
     }
 
-    public Duration getRemainingExpiration(String token){
-        Date expiration = parseClaims(token).getExpiration();
+    public Duration getRemainingExpiration(String token) {
+        try {
+            Date expiration = parseClaims(token).getExpiration();
 
-        long remainingMillis = expiration.getTime() - System.currentTimeMillis();
+            long remainingMillis = expiration.getTime() - System.currentTimeMillis();
 
-        return Duration.ofMillis(Math.max(remainingMillis, 0));
+            return Duration.ofMillis(Math.max(remainingMillis, 0));
+        } catch (ExpiredJwtException e) {
+            return Duration.ZERO;
+        }
     }
 
     public Long getMemberId(String token) {
