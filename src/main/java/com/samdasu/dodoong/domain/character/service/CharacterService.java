@@ -121,4 +121,29 @@ public class CharacterService {
 
         return CharacterPurchaseResponse.of(characterItem, member);
     }
+
+    // 캐릭터 장착
+    @Transactional
+    public CharacterEquipResponse equipCharacter(Long memberId, Long characterId) {
+        memberRepository.findByIdForUpdate(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        CharacterItem characterItem =
+                characterItemRepository.findById(characterId)
+                        .orElseThrow(() -> new CustomException(ErrorCode.CHARACTER_NOT_FOUND));
+
+        MemberCharacter targetCharacter = memberCharacterRepository
+                .findByMemberIdAndCharacterItemId(memberId, characterItem.getId())
+                        .orElseThrow(() -> new CustomException(ErrorCode.CHARACTER_NOT_OWNED));
+
+        if (targetCharacter.isEquipped()) {
+            return CharacterEquipResponse.from(targetCharacter);
+        }
+
+        memberCharacterRepository.findEquippedByMemberId(memberId).ifPresent(MemberCharacter::unequip);
+
+        targetCharacter.equip();
+
+        return CharacterEquipResponse.from(targetCharacter);
+    }
 }

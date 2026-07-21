@@ -20,9 +20,16 @@ public interface MemberCharacterRepository
     List<MemberCharacter> findAllByMemberId(@Param("memberId") Long memberId);
 
     //캐릭터 상세 조회
+    @Query("""
+            select mc
+            from MemberCharacter mc
+            join fetch mc.characterItem
+            where mc.member.id = :memberId
+                and mc.characterItem.id = :characterId
+           """)
     Optional<MemberCharacter> findByMemberIdAndCharacterItemId(
-            Long memberId,
-            Long characterId
+            @Param("memberId") Long memberId,
+            @Param("characterId") Long characterId
     );
 
     @Query("""

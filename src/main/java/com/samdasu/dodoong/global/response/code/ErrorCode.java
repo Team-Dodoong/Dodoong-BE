@@ -47,6 +47,9 @@ public enum ErrorCode implements BaseCode {
     // 400 BAD REQUEST
     INSUFFICIENT_COIN(HttpStatus.BAD_REQUEST, "코인이 부족합니다."),
 
+    // 403 FORBIDDEN
+    CHARACTER_NOT_OWNED(HttpStatus.FORBIDDEN, "보유하지 않은 캐릭터는 장착할 수 없습니다."),
+
     // 404 NOT FOUND
     CHARACTER_NOT_FOUND(HttpStatus.NOT_FOUND,"존재하지 않는 캐릭터입니다."),
     EQUIPPED_CHARACTER_NOT_FOUND(HttpStatus.NOT_FOUND, "장착 중인 캐릭터가 존재하지 않습니다."),
