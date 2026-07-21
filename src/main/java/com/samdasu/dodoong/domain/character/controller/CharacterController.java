@@ -49,7 +49,7 @@ public class CharacterController {
     }
 
     //캐릭터 구매
-    @PostMapping("/{characterId}")
+    @PostMapping("/{characterId}/purchase")
     public BaseResponse<CharacterPurchaseResponse> purchaseCharacter(@AuthenticationPrincipal CustomUserPrincipal principal, @PathVariable Long characterId){
         CharacterPurchaseResponse response = characterService.purchaseCharacter(principal.memberId(), characterId);
 
@@ -57,7 +57,7 @@ public class CharacterController {
     }
 
     //캐릭터 장착
-    @PatchMapping("/{characterId}")
+    @PatchMapping("/{characterId}/equip")
     public BaseResponse<CharacterEquipResponse> equipCharacter(@AuthenticationPrincipal CustomUserPrincipal principal, @PathVariable Long characterId){
         CharacterEquipResponse response = characterService.equipCharacter(principal.memberId(), characterId);
 
