@@ -13,6 +13,15 @@ spring:
       hibernate:
         format_sql: true
 
+  data:
+    redis:
+      host:
+        ${REDIS_HOST: localhost}
+      port:
+        ${REDIS_PORT: 6379}
+      connect-timeout: 3s
+      timeout: 3s
+
 logging:
   level:
     root: INFO

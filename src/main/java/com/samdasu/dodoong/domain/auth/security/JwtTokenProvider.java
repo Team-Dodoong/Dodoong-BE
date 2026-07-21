@@ -11,6 +11,7 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
@@ -81,6 +82,14 @@ public class JwtTokenProvider {
         ) {
             return false;
         }
+    }
+
+    public Duration getRemainingExpiration(String token){
+        Date expiration = parseClaims(token).getExpiration();
+
+        long remainingMillis = expiration.getTime() - System.currentTimeMillis();
+
+        return Duration.ofMillis(Math.max(remainingMillis, 0));
     }
 
     public Long getMemberId(String token) {
