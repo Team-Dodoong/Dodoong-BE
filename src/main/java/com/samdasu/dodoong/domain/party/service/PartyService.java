@@ -64,6 +64,14 @@ public class PartyService {
         return PartyResponseDto.from(party);
     }
 
+    @Transactional
+    public void deleteParty(Long partyId, Long memberId) {
+        Party party = findByPartyId(partyId);
+        authorizePartyLeader(partyId, memberId);
+
+        partyRepository.delete(party);
+    }
+
     public Party findByPartyId(Long partyId){
         return partyRepository.findById(partyId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PARTY_NOT_FOUND));

@@ -35,4 +35,13 @@ public class PartyController {
         PartyResponseDto response = partyService.updateParty(partyId, requestDto, principal.memberId());
         return BaseResponse.ok(response);
     }
+
+    @DeleteMapping("/{partyId}")
+    public BaseResponse<Void> deleteParty(
+            @PathVariable Long partyId,
+            @AuthenticationPrincipal CustomUserPrincipal principal
+    ) {
+        partyService.deleteParty(partyId, principal.memberId());
+        return BaseResponse.noContent();
+    }
 }
