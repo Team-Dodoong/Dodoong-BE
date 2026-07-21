@@ -3,11 +3,11 @@ package com.samdasu.dodoong.domain.quest.service;
 import com.samdasu.dodoong.domain.member.entity.Member;
 import com.samdasu.dodoong.domain.member.repository.MemberRepository;
 import com.samdasu.dodoong.domain.quest.dto.request.DailyQuestCreateRequest;
-import com.samdasu.dodoong.domain.quest.dto.response.DailyQuestCalendarResponse;
-import com.samdasu.dodoong.domain.quest.dto.response.DailyQuestCreateResponse;
-import com.samdasu.dodoong.domain.quest.dto.response.DailyQuestListResponse;
+import com.samdasu.dodoong.domain.quest.dto.response.*;
+import com.samdasu.dodoong.domain.quest.entity.QuestCategory;
 import com.samdasu.dodoong.domain.quest.repository.DailyQuestRepository;
 import com.samdasu.dodoong.domain.quest.entity.DailyQuest;
+import com.samdasu.dodoong.domain.quest.repository.projection.DailyQuestQuadrantProjection;
 import com.samdasu.dodoong.domain.quest.repository.projection.DailyQuestSummaryProjection;
 import com.samdasu.dodoong.domain.routine.entity.Routine;
 import com.samdasu.dodoong.domain.routine.repository.RoutineRepository;
@@ -21,9 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.ZoneId;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -113,6 +115,22 @@ public class DailyQuestService {
                 .toList();
 
         return new DailyQuestListResponse(date, virtualQuests);
+    }
+
+    public DailyQuestQuadrantResponse getQuadrant(Long memberId) {
+        List<DailyQuestQuadrantProjection> projections =
+                dailyQuestRepository.findIncompleteQuests(memberId);
+
+        Map<QuestCategory, List<DailyQuestQuadrantResponse.QuestItem>> grouped = projections.stream()
+                .collect(Collectors.groupingBy(
+                        DailyQuestQuadrantProjection::getQuestCategory,
+                        () -> new EnumMap<>(QuestCategory.class),
+                        Collectors.mapping(DailyQuestQuadrantResponse.QuestItem::from, Collectors.toList())));
+
+        for (QuestCategory category : QuestCategory.values()) {
+            grouped.putIfAbsent(category, List.of());
+        }
+        return DailyQuestQuadrantResponse.of(grouped);
     }
 
     // 퀘스트 단일 생성

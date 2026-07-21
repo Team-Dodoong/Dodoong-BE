@@ -5,6 +5,7 @@ import com.samdasu.dodoong.domain.quest.dto.request.DailyQuestCreateRequest;
 import com.samdasu.dodoong.domain.quest.dto.response.DailyQuestCalendarResponse;
 import com.samdasu.dodoong.domain.quest.dto.response.DailyQuestCreateResponse;
 import com.samdasu.dodoong.domain.quest.dto.response.DailyQuestListResponse;
+import com.samdasu.dodoong.domain.quest.dto.response.DailyQuestQuadrantResponse;
 import com.samdasu.dodoong.domain.quest.entity.DailyQuest;
 import com.samdasu.dodoong.domain.quest.service.DailyQuestService;
 import com.samdasu.dodoong.global.response.dto.BaseResponse;
@@ -50,6 +51,13 @@ public class DailyQuestController {
             @AuthenticationPrincipal CustomUserPrincipal principal,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         DailyQuestListResponse response = dailyQuestService.getDailyQuestByDate(principal.memberId(), date);
+        return BaseResponse.ok(response);
+    }
+
+    @GetMapping("/quadrant")
+    public BaseResponse<DailyQuestQuadrantResponse> getDailyQuestQuadrant(
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
+        DailyQuestQuadrantResponse response = dailyQuestService.getQuadrant(principal.memberId());
         return BaseResponse.ok(response);
     }
 }
