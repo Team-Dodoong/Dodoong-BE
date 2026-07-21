@@ -33,7 +33,10 @@ public class PartyService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-        String encodedPassword = passwordEncoder.encode(requestDto.partyPassword());
+        String encodedPassword = null;
+        if (requestDto.partyPassword() != null) {
+            encodedPassword = passwordEncoder.encode(requestDto.partyPassword());
+        }
         Party savedParty = partyRepository.save(requestDto.toEntity(encodedPassword));
 
         PartyMember partyMember = PartyMember.builder()
