@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Table(name= "member")
+@Table(name= "members")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends BaseTimeEntity {
 
@@ -24,13 +24,13 @@ public class Member extends BaseTimeEntity {
     @Column(nullable = false, length = 255)
     private String password;
 
-    @Column(unique = true)
+    @Column(unique = true, length = 50)
     private String nickname;
 
     @Column
     private String profileImageUrl;
 
-    @Column
+    @Column(length = 255)
     private String introduction;
 
     @Column(nullable = false)
@@ -47,5 +47,19 @@ public class Member extends BaseTimeEntity {
     public Member(String loginId, String encodedPassword) {
         this.loginId = loginId;
         this.password = encodedPassword;
+    }
+
+    public void updateProfile(String nickname, String profileImageUrl, String introduction) {
+        if (nickname != null) {
+            this.nickname = nickname;
+        }
+
+        if (profileImageUrl != null) {
+            this.profileImageUrl = profileImageUrl;
+        }
+
+        if (introduction != null) {
+            this.introduction = introduction;
+        }
     }
 }

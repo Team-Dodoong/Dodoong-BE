@@ -1,10 +1,9 @@
-package com.samdasu.dodoong.domain.auth.dto;
+package com.samdasu.dodoong.domain.auth.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record LoginRequest(
-
         @NotBlank(message = "아이디는 필수입니다.")
         @Size(max = 50, message = "아이디는 50자 이하여야 합니다.")
         String loginId,
@@ -12,6 +11,5 @@ public record LoginRequest(
         @NotBlank(message = "비밀번호는 필수입니다.")
         @Size(max = 50, message = "비밀번호는 50자 이하여야 합니다.")
         String password
-
 ) {
 }

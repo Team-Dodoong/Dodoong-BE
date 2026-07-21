@@ -1,4 +1,4 @@
-package com.samdasu.dodoong.domain.auth.dto;
+package com.samdasu.dodoong.domain.auth.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
