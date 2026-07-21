@@ -12,7 +12,7 @@ RUN chmod +x gradlew && ./gradlew dependencies --no-daemon || true
 
 # 소스 코드 복사 후 빌드
 COPY src src
-RUN ./gradlew clean bootjar --no-daemon -x test
+RUN ./gradlew clean bootJar --no-daemon -x test
 
 # 실행 스테이지
 FROM eclipse-temurin:17-jre
@@ -25,4 +25,4 @@ COPY --from=builder /app/build/libs/*.jar app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "/app/app.jar"]

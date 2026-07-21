@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @Table(
-        name = "refresh_token",
+        name = "refresh_tokens",
         uniqueConstraints = {
                 @UniqueConstraint(
                         name = "uk_refresh_token_member",
