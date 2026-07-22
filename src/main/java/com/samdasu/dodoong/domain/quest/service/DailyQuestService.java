@@ -3,6 +3,7 @@ package com.samdasu.dodoong.domain.quest.service;
 import com.samdasu.dodoong.domain.member.entity.Member;
 import com.samdasu.dodoong.domain.member.repository.MemberRepository;
 import com.samdasu.dodoong.domain.quest.dto.request.DailyQuestCreateRequest;
+import com.samdasu.dodoong.domain.quest.dto.request.DailyQuestUpdateRequest;
 import com.samdasu.dodoong.domain.quest.dto.response.*;
 import com.samdasu.dodoong.domain.quest.entity.QuestCategory;
 import com.samdasu.dodoong.domain.quest.repository.DailyQuestRepository;
@@ -108,10 +109,10 @@ public class DailyQuestService {
         List<Routine> activeRoutines =
                 routineRepository.findActiveRoutineWithRepeatDays(memberId, date);
 
-        List<DailyQuestListResponse.QuestSummary> virtualQuests = activeRoutines.stream()
+        List<DailyQuestSummary> virtualQuests = activeRoutines.stream()
                 .filter(r -> r.getRepeatDays().contains(date.getDayOfWeek()))
                 .filter(r -> !date.isAfter(r.getEndDate()))
-                .map(DailyQuestListResponse.QuestSummary::virtualFrom)
+                .map(DailyQuestSummary::virtualFrom)
                 .toList();
 
         return new DailyQuestListResponse(date, virtualQuests);
@@ -139,6 +140,21 @@ public class DailyQuestService {
                 .map(Quadrant.QuestItem::from)
                 .toList();
         return new Quadrant(questCategory, quests);
+    }
+
+    @Transactional
+    public DailyQuestSummary updateDailyQuest(Long memberId,
+                                              Long dailyQuestId,
+                                              DailyQuestUpdateRequest request) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        DailyQuest dailyQuest = dailyQuestRepository.findByIdAndMemberId(dailyQuestId, memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.DAILY_QUEST_NOT_FOUND));
+
+        dailyQuest.updateQuest(request.questCategory(), request.content());
+
+        return DailyQuestSummary.from(dailyQuest);
     }
 
     // 퀘스트 단일 생성

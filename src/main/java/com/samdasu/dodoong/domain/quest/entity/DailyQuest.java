@@ -73,4 +73,14 @@ public class DailyQuest extends BaseTimeEntity {
                 .routine(routine)
                 .build();
     }
+
+    public void updateQuest(QuestCategory questCategory,
+                                    String content) {
+        if (questCategory != null) {
+            this.questCategory = questCategory;
+        }
+        if (content != null) {
+            this.content = content;
+        }
+    }
 }

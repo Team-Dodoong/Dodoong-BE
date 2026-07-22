@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public interface DailyQuestRepository extends JpaRepository<DailyQuest, Long> {
@@ -87,4 +88,6 @@ public interface DailyQuestRepository extends JpaRepository<DailyQuest, Long> {
             @Param("memberId") Long memberId,
             @Param("questCategory") QuestCategory questCategory
     );
+
+    Optional<DailyQuest> findByIdAndMemberId(Long id, Long memberId);
 }
