@@ -121,16 +121,24 @@ public class DailyQuestService {
         List<DailyQuestQuadrantProjection> projections =
                 dailyQuestRepository.findIncompleteQuests(memberId);
 
-        Map<QuestCategory, List<DailyQuestQuadrantResponse.QuestItem>> grouped = projections.stream()
+        Map<QuestCategory, List<Quadrant.QuestItem>> grouped = projections.stream()
                 .collect(Collectors.groupingBy(
                         DailyQuestQuadrantProjection::getQuestCategory,
                         () -> new EnumMap<>(QuestCategory.class),
-                        Collectors.mapping(DailyQuestQuadrantResponse.QuestItem::from, Collectors.toList())));
+                        Collectors.mapping(Quadrant.QuestItem::from, Collectors.toList())));
 
         for (QuestCategory category : QuestCategory.values()) {
             grouped.putIfAbsent(category, List.of());
         }
         return DailyQuestQuadrantResponse.of(grouped);
+    }
+
+    public Quadrant getQuadrantDetail(Long memberId, QuestCategory questCategory) {
+        List<Quadrant.QuestItem> quests = dailyQuestRepository.
+                findIncompleteQuestsByCategory(memberId, questCategory).stream()
+                .map(Quadrant.QuestItem::from)
+                .toList();
+        return new Quadrant(questCategory, quests);
     }
 
     // 퀘스트 단일 생성
