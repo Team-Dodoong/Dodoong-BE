@@ -146,4 +146,33 @@ public class AuthService {
         blacklistAccessToken(accessToken);
         refreshTokenRepository.deleteByMemberId(memberId);
     }
+
+    @Transactional
+    public TokenResponse reissue(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        if (!jwtTokenProvider.validateRefreshToken(refreshToken)) {
+            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        // JWT subject에서 회원 ID 추출
+        Long memberId = jwtTokenProvider.getMemberId(refreshToken);
+
+        // Redis에 저장된 Refresh Token과 비교
+        if (!refreshTokenRepository.matches(memberId, refreshToken)) {
+            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN));
+
+        TokenResponse newTokenResponse = jwtTokenProvider.issueTokens(member);
+
+        // 기존 Redis 값을 새로운 Refresh Token으로 교체
+        saveRefreshToken(memberId, newTokenResponse.refreshToken());
+
+        return newTokenResponse;
+    }
 }
