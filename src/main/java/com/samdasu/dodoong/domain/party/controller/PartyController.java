@@ -3,12 +3,19 @@ package com.samdasu.dodoong.domain.party.controller;
 import com.samdasu.dodoong.domain.auth.security.CustomUserPrincipal;
 import com.samdasu.dodoong.domain.party.dto.request.PartyRequestDto;
 import com.samdasu.dodoong.domain.party.dto.request.PartyUpdateRequestDto;
+import com.samdasu.dodoong.domain.party.dto.response.PartyListResponseDto;
 import com.samdasu.dodoong.domain.party.dto.response.PartyResponseDto;
 import com.samdasu.dodoong.domain.party.service.PartyService;
 import com.samdasu.dodoong.global.response.dto.BaseResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,5 +50,14 @@ public class PartyController {
     ) {
         partyService.deleteParty(partyId, principal.memberId());
         return BaseResponse.noContent();
+    }
+
+    @GetMapping("/my")
+    public BaseResponse<Page<PartyListResponseDto>> getMyParties(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        Page<PartyListResponseDto> responses = partyService.getMyParties(principal.memberId(), pageable);
+        return BaseResponse.ok(responses);
     }
 }

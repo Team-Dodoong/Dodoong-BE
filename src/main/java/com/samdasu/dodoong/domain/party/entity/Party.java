@@ -36,6 +36,9 @@ public class Party extends BaseTimeEntity {
     private String imageUrl;
 
     @Column(nullable = false)
+    private int currentMembers;
+
+    @Column(nullable = false)
     private int maxMembers;
 
     @Column(nullable = false)
@@ -59,6 +62,7 @@ public class Party extends BaseTimeEntity {
         this.description = description;
         this.category = (category != null) ? category : new ArrayList<>();
         this.imageUrl = imageUrl;
+        this.currentMembers = 1;
         this.maxMembers = maxMembers;
         this.isRecruiting = isRecruiting;
         this.isPublic = isPublic;

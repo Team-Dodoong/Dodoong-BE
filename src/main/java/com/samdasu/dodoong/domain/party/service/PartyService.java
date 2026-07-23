@@ -4,6 +4,7 @@ import com.samdasu.dodoong.domain.member.entity.Member;
 import com.samdasu.dodoong.domain.member.repository.MemberRepository;
 import com.samdasu.dodoong.domain.party.dto.request.PartyRequestDto;
 import com.samdasu.dodoong.domain.party.dto.request.PartyUpdateRequestDto;
+import com.samdasu.dodoong.domain.party.dto.response.PartyListResponseDto;
 import com.samdasu.dodoong.domain.party.dto.response.PartyResponseDto;
 import com.samdasu.dodoong.domain.party.entity.Party;
 import com.samdasu.dodoong.domain.party.entity.PartyMember;
@@ -14,9 +15,13 @@ import com.samdasu.dodoong.global.exception.CustomException;
 import com.samdasu.dodoong.global.response.code.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -70,6 +75,12 @@ public class PartyService {
         authorizePartyLeader(partyId, memberId);
 
         partyRepository.delete(party);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PartyListResponseDto> getMyParties(Long memberId, Pageable pageable) {
+        Page<Party> partyPage = partyRepository.findMyParties(memberId, pageable);
+        return partyPage.map(PartyListResponseDto::from);
     }
 
     public Party findByPartyId(Long partyId){
