@@ -35,4 +35,6 @@ public interface MemberCharacterRepository
     Optional<MemberCharacter> findEquippedByMemberId(
             @Param("memberId") Long memberId
     );
+
+    void deleteAllByMemberId(Long memberId);
 }

@@ -140,4 +140,10 @@ public class AuthService {
 
         accessTokenBlacklistRepository.save(accessToken, remainingExpiration);
     }
+
+    //토큰 정리
+    public void invalidateTokens(Long memberId, String accessToken) {
+        blacklistAccessToken(accessToken);
+        refreshTokenRepository.deleteByMemberId(memberId);
+    }
 }

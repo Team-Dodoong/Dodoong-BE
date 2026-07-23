@@ -93,7 +93,10 @@ public class JwtTokenProvider {
             long remainingMillis = expiration.getTime() - System.currentTimeMillis();
 
             return Duration.ofMillis(Math.max(remainingMillis, 0));
-        } catch (ExpiredJwtException e) {
+        } catch (
+                JwtException |
+                IllegalArgumentException exception
+        ) {
             return Duration.ZERO;
         }
     }
