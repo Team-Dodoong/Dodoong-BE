@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -40,10 +41,7 @@ public class PartyService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-        String encodedPassword = null;
-        if (requestDto.partyPassword() != null) {
-            encodedPassword = passwordEncoder.encode(requestDto.partyPassword());
-        }
+        String encodedPassword = encodePassword(requestDto.partyPassword());
         Party savedParty = partyRepository.save(requestDto.toEntity(encodedPassword));
 
         PartyMember partyMember = PartyMember.builder()
@@ -61,10 +59,7 @@ public class PartyService {
         Party party = findByPartyId(partyId);
         authorizePartyLeader(partyId, memberId);
 
-        String encodedPassword = null;
-        if (requestDto.partyPassword() != null) {
-            encodedPassword = passwordEncoder.encode(requestDto.partyPassword());
-        }
+        String encodedPassword = encodePassword(requestDto.partyPassword());
         party.updateParty(requestDto, encodedPassword);
 
         return PartyResponseDto.from(party);
@@ -107,5 +102,12 @@ public class PartyService {
         if (partyMember.getRole() != PartyRole.LEADER) {
             throw new CustomException(ErrorCode.FORBIDDEN_UPDATE_PARTY);
         }
+    }
+
+    private String encodePassword(String rawPassword) {
+        if (!StringUtils.hasText(rawPassword)) {
+            return null;
+        }
+        return passwordEncoder.encode(rawPassword);
     }
 }
