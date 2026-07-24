@@ -8,6 +8,7 @@ import com.samdasu.dodoong.domain.party.dto.response.PartyResponseDto;
 import com.samdasu.dodoong.domain.party.entity.PartyCategory;
 import com.samdasu.dodoong.domain.party.service.PartyService;
 import com.samdasu.dodoong.global.response.dto.BaseResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,7 +28,7 @@ public class PartyController {
 
     @PostMapping
     public BaseResponse<PartyResponseDto> createParty(
-            @RequestBody PartyRequestDto requestDto,
+            @Valid @RequestBody PartyRequestDto requestDto,
             @AuthenticationPrincipal CustomUserPrincipal principal
     ) {
         PartyResponseDto response = partyService.createParty(requestDto, principal.memberId());
@@ -37,7 +38,7 @@ public class PartyController {
     @PatchMapping("/{partyId}")
     public BaseResponse<PartyResponseDto> updateParty(
             @PathVariable Long partyId,
-            @RequestBody PartyUpdateRequestDto requestDto,
+            @Valid @RequestBody PartyUpdateRequestDto requestDto,
             @AuthenticationPrincipal CustomUserPrincipal principal
     ) {
         PartyResponseDto response = partyService.updateParty(partyId, requestDto, principal.memberId());

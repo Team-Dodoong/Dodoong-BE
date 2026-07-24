@@ -3,6 +3,8 @@ package com.samdasu.dodoong.domain.party.entity;
 import com.samdasu.dodoong.domain.party.dto.request.PartyUpdateRequestDto;
 import com.samdasu.dodoong.global.converter.CategoryListConverter;
 import com.samdasu.dodoong.global.entity.BaseTimeEntity;
+import com.samdasu.dodoong.global.exception.CustomException;
+import com.samdasu.dodoong.global.response.code.ErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -74,6 +76,10 @@ public class Party extends BaseTimeEntity {
             PartyUpdateRequestDto dto,
             String encodedPassword
     ) {
+        if (dto.maxMembers() < this.currentMembers) {
+            throw new CustomException(ErrorCode.INVALID_MAX_MEMBERS);
+        }
+
         this.description = dto.description();
         this.maxMembers = dto.maxMembers();
         this.isPublic = dto.isPublic();
