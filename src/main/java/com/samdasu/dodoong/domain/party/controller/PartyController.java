@@ -53,6 +53,14 @@ public class PartyController {
         return BaseResponse.noContent();
     }
 
+    @GetMapping("/{partyId}")
+    public BaseResponse<PartyResponseDto> getPartyDetail(
+            @PathVariable Long partyId
+    ) {
+        PartyResponseDto responses = partyService.getPartyDetail(partyId);
+        return BaseResponse.ok(responses);
+    }
+
     @GetMapping("/my")
     public BaseResponse<Page<PartyListResponseDto>> getMyParties(
             @AuthenticationPrincipal CustomUserPrincipal principal,

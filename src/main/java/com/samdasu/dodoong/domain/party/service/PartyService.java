@@ -79,6 +79,12 @@ public class PartyService {
     }
 
     @Transactional(readOnly = true)
+    public PartyResponseDto getPartyDetail(Long partyId) {
+        Party party = findByPartyId(partyId);
+        return PartyResponseDto.from(party);
+    }
+
+    @Transactional(readOnly = true)
     public Page<PartyListResponseDto> getMyParties(Long memberId, Pageable pageable) {
         Page<Party> partyPage = partyRepository.findMyParties(memberId, pageable);
         return partyPage.map(PartyListResponseDto::from);
