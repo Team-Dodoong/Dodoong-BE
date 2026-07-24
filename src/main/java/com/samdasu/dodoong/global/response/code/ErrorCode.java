@@ -60,8 +60,8 @@ public enum ErrorCode implements BaseCode {
     // Party
     // 400 BAD REQUEST
     INVALID_MAX_MEMBERS(HttpStatus.BAD_REQUEST, "현재 인원보다 최대인원이 적어 수정할 수 없습니다."),
-    // 401 UNAUTHORIZED
-    FORBIDDEN_UPDATE_PARTY(HttpStatus.UNAUTHORIZED, "파티 수정 권한이 없습니다."),
+    // 403 FORBIDDEN
+    FORBIDDEN_UPDATE_PARTY(HttpStatus.FORBIDDEN, "파티 수정 권한이 없습니다."),
     // 404 NOT FOUND
     PARTY_NOT_FOUND(HttpStatus.NOT_FOUND,"존재하지 않는 파티입니다."),
     PARTY_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND,"파티에 해당 회원이 존재하지 않습니다."),
