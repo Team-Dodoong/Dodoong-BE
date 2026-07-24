@@ -19,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.YearMonth;
@@ -47,6 +48,9 @@ class PartyServiceTest {
 
     @Mock
     private DailyQuestRepository dailyQuestRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private PartyService partyService;
@@ -86,13 +90,20 @@ class PartyServiceTest {
     void joinPartyThrowsWhenPasswordDoesNotMatch() {
         Long memberId = 7L;
         Long partyId = 3L;
-        Party party = createParty(partyId, "비밀 파티", "1234", 10, true);
+        Party party = createParty(
+                partyId,
+                "비밀 파티",
+                "$2a$10$encodedPasswordHash",
+                10,
+                true
+        );
         Member member = createMember(memberId, "dodoong");
 
         when(partyRepository.findByIdForUpdate(partyId)).thenReturn(Optional.of(party));
         when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
         when(partyMemberRepository.existsByMemberIdAndPartyId(memberId, partyId)).thenReturn(false);
         when(partyMemberRepository.countByPartyId(partyId)).thenReturn(3L);
+        when(passwordEncoder.matches("9999", "$2a$10$encodedPasswordHash")).thenReturn(false);
 
         assertThatThrownBy(() -> partyService.joinParty(
                 memberId,
@@ -102,6 +113,37 @@ class PartyServiceTest {
                 .isInstanceOf(CustomException.class)
                 .extracting(exception -> ((CustomException) exception).getBaseCode())
                 .isEqualTo(ErrorCode.PARTY_PASSWORD_MISMATCH);
+    }
+
+    @Test
+    void joinPartyWithPassword() {
+        Long memberId = 7L;
+        Long partyId = 3L;
+        String encodedPassword = "$2a$10$encodedPasswordHash";
+        Party party = createParty(partyId, "비밀 파티", encodedPassword, 10, true);
+        Member member = createMember(memberId, "dodoong");
+        PartyMember savedPartyMember = PartyMember.builder()
+                .role(PartyRole.MEMBER)
+                .member(member)
+                .party(party)
+                .build();
+        ReflectionTestUtils.setField(savedPartyMember, "id", 15L);
+
+        when(partyRepository.findByIdForUpdate(partyId)).thenReturn(Optional.of(party));
+        when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
+        when(partyMemberRepository.existsByMemberIdAndPartyId(memberId, partyId)).thenReturn(false);
+        when(partyMemberRepository.countByPartyId(partyId)).thenReturn(3L);
+        when(passwordEncoder.matches("1234", encodedPassword)).thenReturn(true);
+        when(partyMemberRepository.save(any(PartyMember.class))).thenReturn(savedPartyMember);
+
+        PartyJoinResponse response = partyService.joinParty(
+                memberId,
+                partyId,
+                new PartyJoinRequest("1234")
+        );
+
+        assertThat(response.partyMemberId()).isEqualTo(15L);
+        verify(passwordEncoder).matches("1234", encodedPassword);
     }
 
     @Test

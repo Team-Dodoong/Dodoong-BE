@@ -16,6 +16,7 @@ import com.samdasu.dodoong.global.exception.CustomException;
 import com.samdasu.dodoong.global.response.code.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -38,6 +39,7 @@ public class PartyService {
     private final PartyMemberRepository partyMemberRepository;
     private final MemberRepository memberRepository;
     private final DailyQuestRepository dailyQuestRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public PartyJoinResponse joinParty(
@@ -135,7 +137,13 @@ public class PartyService {
             throw new CustomException(ErrorCode.PARTY_FULL);
         }
 
-        if (hasPassword(party) && !Objects.equals(party.getPartyPassword(), extractPassword(request))) {
+        String submittedPassword = extractPassword(request);
+
+        if (
+                hasPassword(party) &&
+                        (submittedPassword == null ||
+                                !passwordEncoder.matches(submittedPassword, party.getPartyPassword()))
+        ) {
             throw new CustomException(ErrorCode.PARTY_PASSWORD_MISMATCH);
         }
     }
