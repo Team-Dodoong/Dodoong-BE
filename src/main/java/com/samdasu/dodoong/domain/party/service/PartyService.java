@@ -7,6 +7,7 @@ import com.samdasu.dodoong.domain.party.dto.request.PartyUpdateRequestDto;
 import com.samdasu.dodoong.domain.party.dto.response.PartyListResponseDto;
 import com.samdasu.dodoong.domain.party.dto.response.PartyResponseDto;
 import com.samdasu.dodoong.domain.party.entity.Party;
+import com.samdasu.dodoong.domain.party.entity.PartyCategory;
 import com.samdasu.dodoong.domain.party.entity.PartyMember;
 import com.samdasu.dodoong.domain.party.entity.PartyRole;
 import com.samdasu.dodoong.domain.party.repository.PartyMemberRepository;
@@ -81,6 +82,12 @@ public class PartyService {
     public Page<PartyListResponseDto> getMyParties(Long memberId, Pageable pageable) {
         Page<Party> partyPage = partyRepository.findMyParties(memberId, pageable);
         return partyPage.map(PartyListResponseDto::from);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PartyListResponseDto> searchParties(String keyword, List<PartyCategory> categories, Pageable pageable) {
+        return partyRepository.searchParties(keyword, categories, pageable)
+                .map(PartyListResponseDto::from);
     }
 
     public Party findByPartyId(Long partyId){
