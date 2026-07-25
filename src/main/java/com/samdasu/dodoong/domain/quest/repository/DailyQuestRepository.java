@@ -54,4 +54,21 @@ public interface DailyQuestRepository extends JpaRepository<DailyQuest, Long> {
             @Param("memberId") Long memberId,
             @Param("questDate") LocalDate questDate
     );
+
+    // 특정 날짜에 완료한 일일퀘스트 개수
+    long countByMemberIdAndQuestDateAndIsCheckedTrue(
+            Long memberId,
+            LocalDate questDate
+    );
+
+    // 특정 날짜에 퀘스트를 하나 이상 완료한 회원 ID 목록
+    @Query("""
+        SELECT DISTINCT dq.member.id
+        FROM DailyQuest dq
+        WHERE dq.questDate = :questDate
+            AND dq.isChecked = TRUE
+        """)
+    Set<Long> findMemberIdsWithCheckedQuest(
+            @Param("questDate") LocalDate questDate
+    );
 }
