@@ -21,7 +21,7 @@ public class StreakScheduler {
     private final StreakService streakService;
     private final List<QuestAchievementSource> achievementSources;
 
-    @Scheduled(cron = "30 0 0 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "10 0 0 * * *", zone = "Asia/Seoul")
     public void evaluateYesterdayStreaks() {
         LocalDate targetDate = LocalDate.now(KOREA_ZONE).minusDays(1);
 
