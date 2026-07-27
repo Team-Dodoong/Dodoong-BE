@@ -88,6 +88,9 @@ public interface DailyQuestRepository extends JpaRepository<DailyQuest, Long> {
             @Param("content") String content,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
+    );
+
+    @Query("""
     SELECT dq.id AS dailyQuestId,
         dq.questCategory AS questCategory,
         dq.content AS content,
