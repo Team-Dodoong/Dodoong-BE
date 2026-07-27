@@ -1,10 +1,10 @@
 package com.samdasu.dodoong.domain.auth.service;
 
-import com.samdasu.dodoong.domain.auth.entity.RefreshToken;
 import com.samdasu.dodoong.domain.auth.dto.AuthResult;
 import com.samdasu.dodoong.domain.auth.dto.request.LoginRequest;
 import com.samdasu.dodoong.domain.auth.dto.request.SignupRequest;
 import com.samdasu.dodoong.domain.auth.dto.response.TokenResponse;
+import com.samdasu.dodoong.domain.auth.repository.AccessTokenBlacklistRepository;
 import com.samdasu.dodoong.domain.auth.repository.RefreshTokenRepository;
 import com.samdasu.dodoong.domain.auth.security.JwtTokenProvider;
 import com.samdasu.dodoong.domain.character.entity.CharacterItem;
@@ -20,16 +20,19 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-    //TODO: refreshToken redis에 저장하도록 변경 필요
     private final MemberRepository memberRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final CharacterItemRepository characterItemRepository;
     private final MemberCharacterRepository memberCharacterRepository;
+    private final AccessTokenBlacklistRepository accessTokenBlacklistRepository;
+
     private static final Long DEFAULT_CHARACTER_ID = 1L;
 
     @Transactional
@@ -55,8 +58,7 @@ public class AuthService {
         memberCharacterRepository.save(memberCharacter);
         TokenResponse tokenResponse = jwtTokenProvider.issueTokens(savedMember);
 
-        saveOrUpdateRefreshToken(savedMember, tokenResponse.refreshToken());
-
+        saveRefreshToken(savedMember.getId(), tokenResponse.refreshToken());
         return createAuthResult(savedMember, tokenResponse);
     }
 
@@ -72,13 +74,16 @@ public class AuthService {
 
         TokenResponse tokenResponse = jwtTokenProvider.issueTokens(member);
 
-        saveOrUpdateRefreshToken(member, tokenResponse.refreshToken());
+        saveRefreshToken(member.getId(), tokenResponse.refreshToken());
 
         return createAuthResult(member, tokenResponse);
     }
 
     @Transactional
-    public void logout(Long memberId, String refreshToken) {
+    public void logout(Long authenticatedMemberId, String accessToken, String refreshToken) {
+        blacklistAccessToken(accessToken);
+
+        // Refresh Token이 없거나 잘못됐더라도 Access Token 로그아웃은 완료
         if (refreshToken == null || refreshToken.isBlank()) {
             return;
         }
@@ -89,24 +94,18 @@ public class AuthService {
 
         Long tokenMemberId = jwtTokenProvider.getMemberId(refreshToken);
 
-        if (!memberId.equals(tokenMemberId)) {
+        // 요청자와 Refresh Token 주인이 같은지 확인
+        if (!authenticatedMemberId.equals(tokenMemberId)) {
             return;
         }
 
-        RefreshToken savedRefreshToken = refreshTokenRepository
-                .findByToken(refreshToken)
-                .orElse(null);
-
-        if (savedRefreshToken == null) {
+        // Redis에 저장된 Refresh Token과 같은지 확인
+        if (!refreshTokenRepository.matches(authenticatedMemberId, refreshToken)) {
             return;
         }
 
-        if (!savedRefreshToken.getMember().getId().equals(memberId)) {
-            return;
-        }
-
-        refreshTokenRepository.delete(savedRefreshToken);
-        //TODO: Redis 도입 후 Access Token 블랙리스트 등록 추가
+        refreshTokenRepository.deleteByMemberId(authenticatedMemberId
+        );
     }
 
     private void validateDuplicateLoginId(String loginId) {
@@ -115,13 +114,8 @@ public class AuthService {
         }
     }
 
-    private void saveOrUpdateRefreshToken(Member member, String refreshToken) {
-        refreshTokenRepository
-                .findByMemberId(member.getId())
-                .ifPresentOrElse(
-                        savedToken -> savedToken.updateToken(refreshToken),
-                        () -> refreshTokenRepository.save(RefreshToken.create(member, refreshToken))
-                );
+    private void saveRefreshToken(Long memberId, String refreshToken) {
+        refreshTokenRepository.save(memberId, refreshToken);
     }
 
     private AuthResult createAuthResult(Member member, TokenResponse tokenResponse) {
@@ -131,5 +125,19 @@ public class AuthService {
                 tokenResponse.accessToken(),
                 tokenResponse.refreshToken()
         );
+    }
+
+    private void blacklistAccessToken(String accessToken) {
+        if (accessToken == null || accessToken.isBlank()) {
+            return;
+        }
+
+        Duration remainingExpiration = jwtTokenProvider.getRemainingExpiration(accessToken);
+
+        if (remainingExpiration.isZero() || remainingExpiration.isNegative()) {
+            return;
+        }
+
+        accessTokenBlacklistRepository.save(accessToken, remainingExpiration);
     }
 }

@@ -23,5 +23,21 @@ services:
       retries: 5
       start_period: 30s
 
+  redis:
+    image: redis:7.4-alpine
+    container_name: dodoong-redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    command: [ "redis-server", "--appendonly", "yes" ]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   mysql-data:
+  redis-data:
