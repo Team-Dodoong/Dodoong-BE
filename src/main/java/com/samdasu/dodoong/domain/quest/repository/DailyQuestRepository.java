@@ -1,7 +1,10 @@
 package com.samdasu.dodoong.domain.quest.repository;
 
+import com.samdasu.dodoong.domain.quest.dto.response.DailyQuestQuadrantResponse;
 import com.samdasu.dodoong.domain.quest.entity.DailyQuest;
+import com.samdasu.dodoong.domain.quest.entity.QuestCategory;
 import com.samdasu.dodoong.domain.quest.repository.projection.DailyQuestCountProjection;
+import com.samdasu.dodoong.domain.quest.repository.projection.DailyQuestQuadrantProjection;
 import com.samdasu.dodoong.domain.quest.repository.projection.DailyQuestSummaryProjection;
 import com.samdasu.dodoong.domain.quest.repository.projection.MonthlyPartyParticipationProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -85,5 +88,32 @@ public interface DailyQuestRepository extends JpaRepository<DailyQuest, Long> {
             @Param("content") String content,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
+    SELECT dq.id AS dailyQuestId,
+        dq.questCategory AS questCategory,
+        dq.content AS content,
+        dq.questDate AS questDate,
+        r.id AS routineId
+    FROM DailyQuest dq
+    LEFT JOIN dq.routine r
+    WHERE dq.member.id = :memberId
+        AND dq.isChecked = false
+    ORDER BY dq.questDate ASC, dq.id ASC
+    """)
+    List<DailyQuestQuadrantProjection> findIncompleteQuests(
+            @Param("memberId") Long memberId
+    );
+
+    @Query("""
+    SELECT dq.id AS dailyQuestId, dq.questCategory AS questCategory,
+        dq.content AS content, dq.questDate AS questDate, r.id AS routineId
+    FROM DailyQuest dq
+    LEFT JOIN dq.routine r
+    WHERE dq.member.id = :memberId AND dq.questCategory = :questCategory
+        AND dq.isChecked = false 
+    ORDER BY dq.questDate ASC, dq.id ASC
+    """)
+    List<DailyQuestQuadrantProjection> findIncompleteQuestsByCategory(
+            @Param("memberId") Long memberId,
+            @Param("questCategory") QuestCategory questCategory
     );
 }

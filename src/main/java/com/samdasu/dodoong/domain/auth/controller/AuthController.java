@@ -5,6 +5,7 @@ import com.samdasu.dodoong.domain.auth.dto.request.LoginRequest;
 import com.samdasu.dodoong.domain.auth.dto.response.LoginResponse;
 import com.samdasu.dodoong.domain.auth.dto.request.SignupRequest;
 import com.samdasu.dodoong.domain.auth.dto.response.SignupResponse;
+import com.samdasu.dodoong.domain.auth.dto.response.TokenResponse;
 import com.samdasu.dodoong.domain.auth.security.CustomUserPrincipal;
 import com.samdasu.dodoong.domain.auth.service.AuthService;
 import com.samdasu.dodoong.global.util.CookieUtil;
@@ -50,12 +51,29 @@ public class AuthController {
     @PostMapping("/logout")
     public BaseResponse<Void> logout(
             @AuthenticationPrincipal CustomUserPrincipal principal,
+
+            @CookieValue(name = CookieUtil.ACCESS_TOKEN_COOKIE_NAME, required = false)
+            String accessToken,
+
             @CookieValue(name = CookieUtil.REFRESH_TOKEN_COOKIE_NAME, required = false)
             String refreshToken,
+
             HttpServletResponse httpResponse
     ) {
-        authService.logout(principal.memberId(), refreshToken);
+        authService.logout(principal.memberId(), accessToken, refreshToken);
+
         cookieUtil.deleteAuthCookies(httpResponse);
+
+        return BaseResponse.noContent();
+    }
+
+    @PostMapping("/reissue")
+    public BaseResponse<Void> reissue(@CookieValue(name = CookieUtil.REFRESH_TOKEN_COOKIE_NAME, required = false)
+                                          String refreshToken,
+                                      HttpServletResponse httpResponse) {
+        TokenResponse tokenResponse = authService.reissue(refreshToken);
+
+        cookieUtil.addAuthCookies(httpResponse, tokenResponse.accessToken(), tokenResponse.refreshToken());
 
         return BaseResponse.noContent();
     }
