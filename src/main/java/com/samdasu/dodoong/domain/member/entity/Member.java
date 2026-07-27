@@ -62,4 +62,32 @@ public class Member extends BaseTimeEntity {
             this.introduction = introduction;
         }
     }
+
+    //코인 보유량 검사
+    public boolean hasEnoughCoin(int amount){
+        return this.coin >= amount;
+    }
+    //코인 감소
+    public void spendCoin(int amount){
+        this.coin -= amount;
+    }
+    //코인 증가
+    public void earnCoin(int amount) {
+        this.coin += amount;
+    }
+
+    // 레벨업
+    public int calculateRequiredExperience() {
+        return (this.level + 1) * 100;
+    }
+
+    public boolean canLevelUp() {
+        return this.experience >= calculateRequiredExperience();
+    }
+
+    public void levelUp() {
+        this.level += 1;
+        this.experience = 0;
+        earnCoin(this.level * 10);
+    }
 }
