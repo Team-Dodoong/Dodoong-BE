@@ -83,4 +83,12 @@ public class DailyQuest extends BaseTimeEntity {
             this.content = content;
         }
     }
+
+    public boolean changeChecked(boolean isChecked) {
+        if (this.isChecked == isChecked) {
+            return false;
+        }
+        this.isChecked = isChecked;
+        return true;
+    }
 }

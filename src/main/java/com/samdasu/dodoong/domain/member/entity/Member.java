@@ -62,4 +62,11 @@ public class Member extends BaseTimeEntity {
             this.introduction = introduction;
         }
     }
+    public void addExperience(int amount) {
+        this.experience += amount;
+    }
+
+    public void subtractExperience(int amount) {
+        this.experience -= amount;
+    }
 }
