@@ -8,6 +8,7 @@ import com.samdasu.dodoong.domain.quest.repository.projection.DailyQuestQuadrant
 import com.samdasu.dodoong.domain.quest.repository.projection.DailyQuestSummaryProjection;
 import com.samdasu.dodoong.domain.quest.repository.projection.MonthlyPartyParticipationProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -172,4 +173,21 @@ public interface DailyQuestRepository extends JpaRepository<DailyQuest, Long> {
             AND dq.isChecked = TRUE
         """)
     Set<Long> findMemberIdsWithCheckedQuest( @Param("questDate") LocalDate questDate );
+
+    @Modifying(clearAutomatically = true)
+    @Query("""
+    DELETE FROM DailyQuest dq
+    WHERE dq.routine.id = :routineId
+        AND dq.isChecked = false
+    """)
+    int deleteUncheckedByRoutineId(@Param("routineId") Long routineId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+    UPDATE DailyQuest dq
+    SET dq.routine = null
+    WHERE dq.routine.id = :routineId
+        AND dq.isChecked = true
+    """)
+    int detachCheckedByRoutineId(@Param("routineId") Long routineId);
 }

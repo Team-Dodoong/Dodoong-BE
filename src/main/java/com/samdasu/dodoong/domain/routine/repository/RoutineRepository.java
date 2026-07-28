@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface RoutineRepository extends JpaRepository<Routine, Long> {
     @Query("""
@@ -23,4 +24,6 @@ public interface RoutineRepository extends JpaRepository<Routine, Long> {
     """)
     List<Routine> findActiveRoutineWithRepeatDays(@Param("memberId") Long memberId,
                                                   @Param("date") LocalDate date);
+
+    Optional<Routine> findByIdAndMemberId(Long id, Long memberId);
 }
