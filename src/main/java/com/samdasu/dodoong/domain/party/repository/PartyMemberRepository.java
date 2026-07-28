@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PartyMemberRepository extends JpaRepository<PartyMember, Long> {
-
     boolean existsByMemberIdAndPartyId(Long memberId, Long partyId);
 
     long countByPartyId(Long partyId);

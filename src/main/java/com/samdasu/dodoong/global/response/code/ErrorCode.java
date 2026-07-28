@@ -70,17 +70,18 @@ public enum ErrorCode implements BaseCode {
 
     // Party
     // 400 BAD REQUEST
+    INVALID_MAX_MEMBERS(HttpStatus.BAD_REQUEST, "현재 인원보다 최대인원이 적어 수정할 수 없습니다."),
     PARTY_PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "파티 비밀번호가 일치하지 않습니다."),
     ALREADY_JOINED_PARTY(HttpStatus.BAD_REQUEST, "이미 가입한 파티입니다."),
     PARTY_FULL(HttpStatus.BAD_REQUEST, "파티 정원이 가득 찼습니다."),
     PARTY_RECRUITMENT_CLOSED(HttpStatus.BAD_REQUEST, "모집이 마감된 파티입니다."),
     NOT_JOINED_PARTY(HttpStatus.BAD_REQUEST, "가입하지 않은 파티입니다."),
-
     // 403 FORBIDDEN
+    FORBIDDEN_UPDATE_PARTY(HttpStatus.FORBIDDEN, "파티 수정 권한이 없습니다."),
     PARTY_MEMBER_ONLY(HttpStatus.FORBIDDEN, "해당 파티에 가입한 회원만 조회할 수 있습니다."),
-
     // 404 NOT FOUND
-    PARTY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 파티입니다.");
+    PARTY_NOT_FOUND(HttpStatus.NOT_FOUND,"존재하지 않는 파티입니다."),
+    PARTY_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND,"파티에 해당 회원이 존재하지 않습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
