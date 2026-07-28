@@ -1,5 +1,8 @@
 package com.samdasu.dodoong.domain.member.service;
 
+import com.samdasu.dodoong.domain.character.entity.MemberCharacter;
+import com.samdasu.dodoong.domain.character.repository.MemberCharacterRepository;
+import com.samdasu.dodoong.domain.member.dto.response.LevelUpResponse;
 import com.samdasu.dodoong.domain.member.dto.response.MemberResponse;
 import com.samdasu.dodoong.domain.member.dto.request.ProfileUpdateRequest;
 import com.samdasu.dodoong.domain.member.dto.response.ProfileUpdateResponse;
@@ -18,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class MemberService {
 
     private final MemberRepository memberRepository;
+    private final MemberCharacterRepository memberCharacterRepository;
 
     public MemberResponse getMyInfo(Long memberId) {
         Member member = findMember(memberId);
@@ -61,6 +65,30 @@ public class MemberService {
         );
 
         return ProfileUpdateResponse.from(member);
+    }
+
+    //회원 탈퇴
+    // TODO: 다른 회원 연관 도메인 구현 후 탈퇴 시 연관 데이터 전체 삭제 구현
+    @Transactional
+    public void withdraw(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        memberCharacterRepository.deleteAllByMemberId(memberId);
+        memberRepository.delete(member);
+    }
+
+    @Transactional
+    public LevelUpResponse levelUp(Long memberId) {
+        Member member = findMember(memberId);
+
+        if (!member.canLevelUp()) {
+            throw new CustomException(ErrorCode.INSUFFICIENT_EXPERIENCE);
+        }
+
+        member.levelUp();
+
+        return LevelUpResponse.from(member);
     }
 
     private Member findMember(Long memberId) {
