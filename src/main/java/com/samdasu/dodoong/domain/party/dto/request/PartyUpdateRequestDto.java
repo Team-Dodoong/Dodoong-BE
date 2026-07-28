@@ -12,7 +12,6 @@ public record PartyUpdateRequestDto(
 
         Boolean isPublic,
 
-        @NotNull
         @Size(min = 4, message = "비밀번호는 4자 이상이여야 합니다.")
         String partyPassword,
 
