@@ -3,6 +3,8 @@ package com.samdasu.dodoong.domain.quest.entity;
 import com.samdasu.dodoong.domain.routine.entity.Routine;
 import com.samdasu.dodoong.global.entity.BaseTimeEntity;
 import com.samdasu.dodoong.domain.member.entity.Member;
+import com.samdasu.dodoong.global.exception.CustomException;
+import com.samdasu.dodoong.global.response.code.ErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -90,5 +92,19 @@ public class DailyQuest extends BaseTimeEntity {
         }
         this.isChecked = isChecked;
         return true;
+    }
+
+    public boolean isFromRoutine() {
+        return this.routine != null;
+    }
+
+    public void postponeToNextDay() {
+        if (isFromRoutine()) {
+            throw new CustomException(ErrorCode.ROUTINE_QUEST_DATE_NOT_FOUND);
+        }
+        if (this.isChecked) {
+            throw new CustomException(ErrorCode.CHECKED_QUEST_CANNOT_BE_POSTPONED);
+        }
+        this.questDate = this.questDate.plusDays(1);
     }
 }
