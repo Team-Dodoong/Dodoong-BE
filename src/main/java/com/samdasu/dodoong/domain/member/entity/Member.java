@@ -68,6 +68,7 @@ public class Member extends BaseTimeEntity {
 
     public void subtractExperience(int amount) {
         this.experience -= amount;
+    }
 
     //코인 보유량 검사
     public boolean hasEnoughCoin(int amount){
