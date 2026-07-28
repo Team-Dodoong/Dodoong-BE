@@ -12,7 +12,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @SpringBootTest
 @TestPropertySource(properties = {
 		"spring.jpa.hibernate.ddl-auto=create-drop",
-		"spring.jpa.show-sql=true"
+		"spring.jpa.show-sql=true",
+		"jwt.secret=Y29kZXgtdGVzdC1qd3Qtc2VjcmV0LWtleS0zMi1ieXRlcyEh",
+		"jwt.access-token-expiration=1800000",
+		"jwt.refresh-token-expiration=1209600000"
 })
 class DodoongApplicationTests {
 	@Container
