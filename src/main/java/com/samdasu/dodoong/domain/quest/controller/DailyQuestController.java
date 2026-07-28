@@ -85,4 +85,12 @@ public class DailyQuestController {
             @PathVariable Long dailyQuestId) {
         return BaseResponse.ok(dailyQuestService.postpone(principal.memberId(), dailyQuestId));
     }
+
+    @DeleteMapping("/{dailyQuestId}")
+    public BaseResponse<Void> deleteDailyQuest(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @PathVariable Long dailyQuestId) {
+        dailyQuestService.deleteDailyQuest(principal.memberId(), dailyQuestId);
+        return BaseResponse.noContent();
+    }
 }
