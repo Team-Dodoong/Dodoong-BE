@@ -62,6 +62,13 @@ public class Member extends BaseTimeEntity {
             this.introduction = introduction;
         }
     }
+    public void addExperience(int amount) {
+        this.experience += amount;
+    }
+
+    public void subtractExperience(int amount) {
+        this.experience -= Math.max(0, this.experience - amount);
+    }
 
     //코인 보유량 검사
     public boolean hasEnoughCoin(int amount){
