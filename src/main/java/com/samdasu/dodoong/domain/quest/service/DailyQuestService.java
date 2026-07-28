@@ -2,7 +2,9 @@ package com.samdasu.dodoong.domain.quest.service;
 
 import com.samdasu.dodoong.domain.member.entity.Member;
 import com.samdasu.dodoong.domain.member.repository.MemberRepository;
+import com.samdasu.dodoong.domain.quest.dto.request.DailyQuestCheckRequest;
 import com.samdasu.dodoong.domain.quest.dto.request.DailyQuestCreateRequest;
+import com.samdasu.dodoong.domain.quest.dto.request.DailyQuestUpdateRequest;
 import com.samdasu.dodoong.domain.quest.dto.response.*;
 import com.samdasu.dodoong.domain.quest.entity.QuestCategory;
 import com.samdasu.dodoong.domain.quest.repository.DailyQuestRepository;
@@ -26,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +36,7 @@ import java.util.stream.Collectors;
 public class DailyQuestService {
 
     private static final ZoneId ZONE_KST = ZoneId.of("Asia/Seoul");
+    private static final int EXPERIENCE_PER_QUEST = 10;
 
     private final MemberRepository memberRepository;
     private final DailyQuestRepository dailyQuestRepository;
@@ -82,6 +86,11 @@ public class DailyQuestService {
                             .incrementTotal();;
                 }
             }
+
+            dailyQuestRepository.countNoRoutineQuestsByPeriod(memberId, virtualStart, endDate)
+                    .forEach(p -> countMap
+                            .computeIfAbsent(p.getQuestDate(), k -> new DayCountAccumulator(0L, 0L))
+                            .addTotal(p.getTotalCount()));
         }
 
         List<DailyQuestCalendarResponse.DayCount> days = countMap.entrySet().stream()
@@ -105,16 +114,24 @@ public class DailyQuestService {
         }
 
         // 미래: 가상 전개
+        List<DailyQuestSummary> realQuests =
+                dailyQuestRepository.findSummariesByDateAndNoRoutine(memberId, date).stream()
+                        .map(DailyQuestSummary::from)
+                        .toList();
+
         List<Routine> activeRoutines =
                 routineRepository.findActiveRoutineWithRepeatDays(memberId, date);
 
-        List<DailyQuestListResponse.QuestSummary> virtualQuests = activeRoutines.stream()
+        List<DailyQuestSummary> virtualQuests = activeRoutines.stream()
                 .filter(r -> r.getRepeatDays().contains(date.getDayOfWeek()))
                 .filter(r -> !date.isAfter(r.getEndDate()))
-                .map(DailyQuestListResponse.QuestSummary::virtualFrom)
+                .map(DailyQuestSummary::virtualFrom)
                 .toList();
 
-        return new DailyQuestListResponse(date, virtualQuests);
+        List<DailyQuestSummary> merged =
+                Stream.concat(realQuests.stream(), virtualQuests.stream()).toList();
+
+        return new DailyQuestListResponse(date, merged);
     }
 
     public DailyQuestQuadrantResponse getQuadrant(Long memberId) {
@@ -139,6 +156,57 @@ public class DailyQuestService {
                 .map(Quadrant.QuestItem::from)
                 .toList();
         return new Quadrant(questCategory, quests);
+    }
+
+    @Transactional
+    public DailyQuestSummary updateDailyQuest(Long memberId,
+                                              Long dailyQuestId,
+                                              DailyQuestUpdateRequest request) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        DailyQuest dailyQuest = dailyQuestRepository.findByIdAndMemberId(dailyQuestId, memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.DAILY_QUEST_NOT_FOUND));
+
+        dailyQuest.updateQuest(request.questCategory(), request.content());
+
+        return DailyQuestSummary.from(dailyQuest);
+    }
+
+    @Transactional
+    public DailyQuestCheckResponse checkDailyQuest(Long memberId,
+                                                   Long dailyQuestId,
+                                                   DailyQuestCheckRequest request) {
+        Member member = memberRepository.findByIdForUpdate(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        DailyQuest dailyQuest = dailyQuestRepository.findByIdAndMemberId(dailyQuestId, memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.DAILY_QUEST_NOT_FOUND));
+
+        boolean target = request.isChecked();
+        int before = member.getExperience();
+
+        if (dailyQuest.changeChecked(target)) {
+            if (target) {
+                member.addExperience(EXPERIENCE_PER_QUEST);
+            } else {
+                member.subtractExperience(EXPERIENCE_PER_QUEST);
+            }
+        }
+
+        int after = member.getExperience();
+        return DailyQuestCheckResponse.of(dailyQuest, after, after - before);
+    }
+
+    @Transactional
+    public DailyQuestPostponeResponse postpone(Long memberId, Long dailyQuestId) {
+        DailyQuest dailyQuest = dailyQuestRepository
+                .findByIdAndMemberId(dailyQuestId, memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.DAILY_QUEST_NOT_FOUND));
+
+        dailyQuest.postponeToNextDay();
+
+        return DailyQuestPostponeResponse.from(dailyQuest);
     }
 
     // 퀘스트 단일 생성
@@ -196,6 +264,10 @@ public class DailyQuestService {
 
         void incrementTotal() {
             total++;
+        }
+
+        void addTotal(long delta) {
+            this.total += delta;
         }
 
         long total() {
