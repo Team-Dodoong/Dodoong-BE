@@ -100,7 +100,7 @@ public class DailyQuest extends BaseTimeEntity {
 
     public void postponeToNextDay() {
         if (isFromRoutine()) {
-            throw new CustomException(ErrorCode.ROUTINE_QUEST_DATE_NOT_FOUND);
+            throw new CustomException(ErrorCode.ROUTINE_QUEST_CANNOT_BE_POSTPONED);
         }
         if (this.isChecked) {
             throw new CustomException(ErrorCode.CHECKED_QUEST_CANNOT_BE_POSTPONED);
