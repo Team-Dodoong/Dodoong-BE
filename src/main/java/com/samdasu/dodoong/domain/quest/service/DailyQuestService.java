@@ -2,6 +2,7 @@ package com.samdasu.dodoong.domain.quest.service;
 
 import com.samdasu.dodoong.domain.member.entity.Member;
 import com.samdasu.dodoong.domain.member.repository.MemberRepository;
+import com.samdasu.dodoong.domain.quest.dto.request.DailyQuestCheckRequest;
 import com.samdasu.dodoong.domain.quest.dto.request.DailyQuestCreateRequest;
 import com.samdasu.dodoong.domain.quest.dto.request.DailyQuestUpdateRequest;
 import com.samdasu.dodoong.domain.quest.dto.response.*;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 public class DailyQuestService {
 
     private static final ZoneId ZONE_KST = ZoneId.of("Asia/Seoul");
+    private static final int EXPERIENCE_PER_QUEST = 10;
 
     private final MemberRepository memberRepository;
     private final DailyQuestRepository dailyQuestRepository;
@@ -155,6 +157,31 @@ public class DailyQuestService {
         dailyQuest.updateQuest(request.questCategory(), request.content());
 
         return DailyQuestSummary.from(dailyQuest);
+    }
+
+    @Transactional
+    public DailyQuestCheckResponse checkDailyQuest(Long memberId,
+                                                   Long dailyQuestId,
+                                                   DailyQuestCheckRequest request) {
+        Member member = memberRepository.findByIdForUpdate(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        DailyQuest dailyQuest = dailyQuestRepository.findByIdAndMemberId(dailyQuestId, memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.DAILY_QUEST_NOT_FOUND));
+
+        boolean target = request.isChecked();
+        int before = member.getExperience();
+
+        if (dailyQuest.changeChecked(target)) {
+            if (target) {
+                member.addExperience(EXPERIENCE_PER_QUEST);
+            } else {
+                member.subtractExperience(EXPERIENCE_PER_QUEST);
+            }
+        }
+
+        int after = member.getExperience();
+        return DailyQuestCheckResponse.of(dailyQuest, after, after - before);
     }
 
     // 퀘스트 단일 생성

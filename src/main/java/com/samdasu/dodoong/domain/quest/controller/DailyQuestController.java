@@ -1,6 +1,7 @@
 package com.samdasu.dodoong.domain.quest.controller;
 
 import com.samdasu.dodoong.domain.auth.security.CustomUserPrincipal;
+import com.samdasu.dodoong.domain.quest.dto.request.DailyQuestCheckRequest;
 import com.samdasu.dodoong.domain.quest.dto.request.DailyQuestCreateRequest;
 import com.samdasu.dodoong.domain.quest.dto.request.DailyQuestUpdateRequest;
 import com.samdasu.dodoong.domain.quest.dto.response.*;
@@ -69,4 +70,13 @@ public class DailyQuestController {
             @Valid @RequestBody DailyQuestUpdateRequest request) {
         return BaseResponse.ok(dailyQuestService.updateDailyQuest(principal.memberId(), dailyQuestId, request));
     }
+
+    @PatchMapping("/{dailyQuestId}/check")
+    public BaseResponse<DailyQuestCheckResponse> checkDailyQuest(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @PathVariable Long dailyQuestId,
+            @Valid @RequestBody DailyQuestCheckRequest request) {
+        return BaseResponse.ok(dailyQuestService.checkDailyQuest(principal.memberId(), dailyQuestId, request));
+    }
+
 }
