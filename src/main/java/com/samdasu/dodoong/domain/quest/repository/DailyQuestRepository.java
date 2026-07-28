@@ -14,6 +14,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public interface DailyQuestRepository extends JpaRepository<DailyQuest, Long> {
@@ -118,6 +119,43 @@ public interface DailyQuestRepository extends JpaRepository<DailyQuest, Long> {
     List<DailyQuestQuadrantProjection> findIncompleteQuestsByCategory(
             @Param("memberId") Long memberId,
             @Param("questCategory") QuestCategory questCategory
+    );
+
+    Optional<DailyQuest> findByIdAndMemberId(Long id, Long memberId);
+
+    @Query("""
+    SELECT dq.id AS dailyQuestId,
+        dq.questCategory AS questCategory,
+        dq.content AS content,
+        dq.isChecked AS isChecked,
+        r.id AS routineId
+    FROM DailyQuest dq
+    LEFT JOIN dq.routine r
+    WHERE dq.member.id = :memberId
+        AND dq.questDate = :questDate
+        AND dq.routine IS NULL
+    ORDER BY dq.id ASC
+    """)
+    List<DailyQuestSummaryProjection> findSummariesByDateAndNoRoutine(
+            @Param("memberId") Long memberId,
+            @Param("questDate") LocalDate questDate
+    );
+
+    @Query("""
+    SELECT dq.questDate AS questDate,
+        COUNT(dq) AS totalCount,
+        SUM(CASE WHEN dq.isChecked = true THEN 1L ELSE 0L END) AS checkedCount
+    FROM DailyQuest dq
+    WHERE dq.member.id = :memberId
+        AND dq.questDate BETWEEN :startDate AND :endDate
+        AND dq.routine IS NULL
+    GROUP BY dq.questDate
+    ORDER BY dq.questDate ASC
+    """)
+    List<DailyQuestCountProjection> countNoRoutineQuestsByPeriod(
+            @Param("memberId") Long memberId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
     );
            
     // 특정 날짜에 완료한 일일퀘스트 개수

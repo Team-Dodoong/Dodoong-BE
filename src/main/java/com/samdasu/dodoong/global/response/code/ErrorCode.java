@@ -63,6 +63,10 @@ public enum ErrorCode implements BaseCode {
     // DailyQuest
     // 400 BAD REQUEST
     ROUTINE_QUEST_DATE_NOT_FOUND(HttpStatus.BAD_REQUEST, "마감일까지 생성할 수 있는 반복 퀘스트 날짜가 없습니다."),
+    // 404 NOT FOUND
+    DAILY_QUEST_NOT_FOUND(HttpStatus.NOT_FOUND,"존재하지 않는 퀘스트입니다."),
+    ROUTINE_QUEST_CANNOT_BE_POSTPONED(HttpStatus.BAD_REQUEST, "루틴 퀘스트는 미룰 수 없습니다."),
+    CHECKED_QUEST_CANNOT_BE_POSTPONED(HttpStatus.BAD_REQUEST, "완료된 퀘스트는 미룰 수 없습니다."),
 
     // Party
     // 400 BAD REQUEST
