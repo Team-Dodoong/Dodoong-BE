@@ -21,6 +21,9 @@ public enum ErrorCode implements BaseCode {
     // 403 FORBIDDEN
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
 
+    // 409 CONFLICT
+    LOCK_TIMEOUT(HttpStatus.CONFLICT, "다른 요청이 처리 중입니다. 잠시 후 다시 시도해주세요."),
+
     // 404 NOT FOUND
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 리소스를 찾을 수 없습니다."),
 
@@ -59,7 +62,21 @@ public enum ErrorCode implements BaseCode {
     ALREADY_OWNED_CHARACTER(HttpStatus.CONFLICT, "이미 보유 중인 캐릭터입니다."),
     // DailyQuest
     // 400 BAD REQUEST
-    ROUTINE_QUEST_DATE_NOT_FOUND(HttpStatus.BAD_REQUEST, "마감일까지 생성할 수 있는 반복 퀘스트 날짜가 없습니다.");
+    ROUTINE_QUEST_DATE_NOT_FOUND(HttpStatus.BAD_REQUEST, "마감일까지 생성할 수 있는 반복 퀘스트 날짜가 없습니다."),
+
+    // Party
+    // 400 BAD REQUEST
+    PARTY_PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "파티 비밀번호가 일치하지 않습니다."),
+    ALREADY_JOINED_PARTY(HttpStatus.BAD_REQUEST, "이미 가입한 파티입니다."),
+    PARTY_FULL(HttpStatus.BAD_REQUEST, "파티 정원이 가득 찼습니다."),
+    PARTY_RECRUITMENT_CLOSED(HttpStatus.BAD_REQUEST, "모집이 마감된 파티입니다."),
+    NOT_JOINED_PARTY(HttpStatus.BAD_REQUEST, "가입하지 않은 파티입니다."),
+
+    // 403 FORBIDDEN
+    PARTY_MEMBER_ONLY(HttpStatus.FORBIDDEN, "해당 파티에 가입한 회원만 조회할 수 있습니다."),
+
+    // 404 NOT FOUND
+    PARTY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 파티입니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
