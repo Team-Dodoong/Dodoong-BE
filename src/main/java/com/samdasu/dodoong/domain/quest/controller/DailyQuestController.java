@@ -79,4 +79,10 @@ public class DailyQuestController {
         return BaseResponse.ok(dailyQuestService.checkDailyQuest(principal.memberId(), dailyQuestId, request));
     }
 
+    @PatchMapping("/{dailyQuestId}/postpone")
+    public BaseResponse<DailyQuestPostponeResponse> postpone(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @PathVariable Long dailyQuestId) {
+        return BaseResponse.ok(dailyQuestService.postpone(principal.memberId(), dailyQuestId));
+    }
 }

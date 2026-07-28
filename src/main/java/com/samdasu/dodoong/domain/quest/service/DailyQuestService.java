@@ -198,6 +198,17 @@ public class DailyQuestService {
         return DailyQuestCheckResponse.of(dailyQuest, after, after - before);
     }
 
+    @Transactional
+    public DailyQuestPostponeResponse postpone(Long memberId, Long dailyQuestId) {
+        DailyQuest dailyQuest = dailyQuestRepository
+                .findByIdAndMemberId(dailyQuestId, memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.DAILY_QUEST_NOT_FOUND));
+
+        dailyQuest.postponeToNextDay();
+
+        return DailyQuestPostponeResponse.from(dailyQuest);
+    }
+
     // 퀘스트 단일 생성
     private DailyQuestCreateResponse createSingleQuest(
             Member member,
