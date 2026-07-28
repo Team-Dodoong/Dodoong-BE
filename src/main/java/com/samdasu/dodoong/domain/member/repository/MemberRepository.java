@@ -23,15 +23,5 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT m FROM Member m WHERE m.id = :id")
     Optional<Member> findByIdForUpdate(@Param("id") Long id);
-    //코인 중복 사용 방지
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("""
-            select m
-            from Member m
-            where m.id = :memberId
-            """)
-    Optional<Member> findByIdForUpdate(
-            @Param("memberId") Long memberId
-    );
 }
 
