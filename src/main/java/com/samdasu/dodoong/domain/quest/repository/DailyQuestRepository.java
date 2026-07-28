@@ -1,8 +1,12 @@
 package com.samdasu.dodoong.domain.quest.repository;
 
+import com.samdasu.dodoong.domain.quest.dto.response.DailyQuestQuadrantResponse;
 import com.samdasu.dodoong.domain.quest.entity.DailyQuest;
+import com.samdasu.dodoong.domain.quest.entity.QuestCategory;
 import com.samdasu.dodoong.domain.quest.repository.projection.DailyQuestCountProjection;
+import com.samdasu.dodoong.domain.quest.repository.projection.DailyQuestQuadrantProjection;
 import com.samdasu.dodoong.domain.quest.repository.projection.DailyQuestSummaryProjection;
+import com.samdasu.dodoong.domain.quest.repository.projection.MonthlyPartyParticipationProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -54,7 +58,68 @@ public interface DailyQuestRepository extends JpaRepository<DailyQuest, Long> {
             @Param("memberId") Long memberId,
             @Param("questDate") LocalDate questDate
     );
+      
+    @Query("""
+    SELECT CASE WHEN COUNT(dq) > 0 THEN true ELSE false END
+    FROM DailyQuest dq
+    WHERE dq.member.id = :memberId
+        AND dq.content = :content
+        AND dq.isChecked = true
+        AND dq.questDate = :questDate
+    """)
+    boolean existsCheckedPartyQuest(
+            @Param("memberId") Long memberId,
+            @Param("content") String content,
+            @Param("questDate") LocalDate questDate
+    );
 
+    @Query("""
+    SELECT dq.member.id AS memberId,
+        COUNT(DISTINCT dq.questDate) AS participationCount
+    FROM DailyQuest dq
+    WHERE dq.member.id IN :memberIds
+        AND dq.content = :content
+        AND dq.isChecked = true
+        AND dq.questDate BETWEEN :startDate AND :endDate
+    GROUP BY dq.member.id
+    """)
+    List<MonthlyPartyParticipationProjection> countMonthlyPartyParticipations(
+            @Param("memberIds") List<Long> memberIds,
+            @Param("content") String content,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
+    @Query("""
+    SELECT dq.id AS dailyQuestId,
+        dq.questCategory AS questCategory,
+        dq.content AS content,
+        dq.questDate AS questDate,
+        r.id AS routineId
+    FROM DailyQuest dq
+    LEFT JOIN dq.routine r
+    WHERE dq.member.id = :memberId
+        AND dq.isChecked = false
+    ORDER BY dq.questDate ASC, dq.id ASC
+    """)
+    List<DailyQuestQuadrantProjection> findIncompleteQuests(
+            @Param("memberId") Long memberId
+    );
+
+    @Query("""
+    SELECT dq.id AS dailyQuestId, dq.questCategory AS questCategory,
+        dq.content AS content, dq.questDate AS questDate, r.id AS routineId
+    FROM DailyQuest dq
+    LEFT JOIN dq.routine r
+    WHERE dq.member.id = :memberId AND dq.questCategory = :questCategory
+        AND dq.isChecked = false 
+    ORDER BY dq.questDate ASC, dq.id ASC
+    """)
+    List<DailyQuestQuadrantProjection> findIncompleteQuestsByCategory(
+            @Param("memberId") Long memberId,
+            @Param("questCategory") QuestCategory questCategory
+    );
+           
     // 특정 날짜에 완료한 일일퀘스트 개수
     long countByMemberIdAndQuestDateAndIsCheckedTrue(
             Long memberId,
@@ -68,7 +133,5 @@ public interface DailyQuestRepository extends JpaRepository<DailyQuest, Long> {
         WHERE dq.questDate = :questDate
             AND dq.isChecked = TRUE
         """)
-    Set<Long> findMemberIdsWithCheckedQuest(
-            @Param("questDate") LocalDate questDate
-    );
+    Set<Long> findMemberIdsWithCheckedQuest( @Param("questDate") LocalDate questDate );
 }

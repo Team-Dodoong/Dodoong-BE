@@ -43,6 +43,8 @@ public interface MemberCharacterRepository
             @Param("memberId") Long memberId
     );
 
+    void deleteAllByMemberId(Long memberId);
+           
     boolean existsByMemberIdAndCharacterItemId(
             Long memberId,
             Long characterId
