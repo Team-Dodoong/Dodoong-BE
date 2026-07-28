@@ -2,10 +2,9 @@ package com.samdasu.dodoong.domain.quest.controller;
 
 import com.samdasu.dodoong.domain.auth.security.CustomUserPrincipal;
 import com.samdasu.dodoong.domain.quest.dto.request.DailyQuestCreateRequest;
-import com.samdasu.dodoong.domain.quest.dto.response.DailyQuestCalendarResponse;
-import com.samdasu.dodoong.domain.quest.dto.response.DailyQuestCreateResponse;
-import com.samdasu.dodoong.domain.quest.dto.response.DailyQuestListResponse;
+import com.samdasu.dodoong.domain.quest.dto.response.*;
 import com.samdasu.dodoong.domain.quest.entity.DailyQuest;
+import com.samdasu.dodoong.domain.quest.entity.QuestCategory;
 import com.samdasu.dodoong.domain.quest.service.DailyQuestService;
 import com.samdasu.dodoong.global.response.dto.BaseResponse;
 import jakarta.validation.Valid;
@@ -51,5 +50,19 @@ public class DailyQuestController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         DailyQuestListResponse response = dailyQuestService.getDailyQuestByDate(principal.memberId(), date);
         return BaseResponse.ok(response);
+    }
+
+    @GetMapping("/quadrants")
+    public BaseResponse<DailyQuestQuadrantResponse> getDailyQuestQuadrant(
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
+        DailyQuestQuadrantResponse response = dailyQuestService.getQuadrant(principal.memberId());
+        return BaseResponse.ok(response);
+    }
+
+    @GetMapping("/quadrants/{questCategory}")
+    public BaseResponse<Quadrant> getDailyQuestByCategory(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @PathVariable QuestCategory questCategory) {
+         return BaseResponse.ok(dailyQuestService.getQuadrantDetail(principal.memberId(), questCategory));
     }
 }

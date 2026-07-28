@@ -21,6 +21,19 @@ services:
       retries: 5
       start_period: 30s
 
+  redis:
+    image: redis:7.4-alpine
+    container_name: dodoong-redis
+    restart: unless-stopped
+    command: [ "redis-server", "--appendonly", "yes" ]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   app:
     image: ghcr.io/team-samdasu/dodoong:latest
     container_name: dodoong-app
@@ -28,12 +41,16 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
       DB_DATASOURCE_URL: jdbc:mysql://db:3306/${DB_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
 
   nginx:
     image: nginx:1.27-alpine
@@ -49,3 +66,4 @@ services:
 
 volumes:
   mysql-data:
+  redis-data:

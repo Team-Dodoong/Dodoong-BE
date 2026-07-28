@@ -1,5 +1,6 @@
 package com.samdasu.dodoong.domain.auth.security;
 
+import com.samdasu.dodoong.domain.auth.repository.AccessTokenBlacklistRepository;
 import com.samdasu.dodoong.global.util.CookieUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,6 +22,7 @@ import java.util.Collections;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final AccessTokenBlacklistRepository accessTokenBlacklistRepository;
 
     @Override
     protected void doFilterInternal(
@@ -32,11 +34,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String accessToken = resolveAccessToken(request);
 
         if (
-                accessToken != null &&
-                        !accessToken.isBlank() &&
-                        SecurityContextHolder
-                                .getContext()
-                                .getAuthentication() == null
+                accessToken != null
+                        && !accessToken.isBlank()
+                        && !accessTokenBlacklistRepository.exists(accessToken)
+                        && SecurityContextHolder
+                        .getContext()
+                        .getAuthentication() == null
         ) {
             setAuthentication(accessToken);
         }

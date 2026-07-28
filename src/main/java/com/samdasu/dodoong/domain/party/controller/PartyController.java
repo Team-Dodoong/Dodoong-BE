@@ -6,6 +6,9 @@ import com.samdasu.dodoong.domain.party.dto.request.PartyUpdateRequestDto;
 import com.samdasu.dodoong.domain.party.dto.response.PartyListResponseDto;
 import com.samdasu.dodoong.domain.party.dto.response.PartyResponseDto;
 import com.samdasu.dodoong.domain.party.entity.PartyCategory;
+import com.samdasu.dodoong.domain.party.dto.request.PartyJoinRequest;
+import com.samdasu.dodoong.domain.party.dto.response.PartyJoinResponse;
+import com.samdasu.dodoong.domain.party.dto.response.PartyMonthlyMeResponse;
 import com.samdasu.dodoong.domain.party.service.PartyService;
 import com.samdasu.dodoong.global.response.dto.BaseResponse;
 import jakarta.validation.Valid;
@@ -79,5 +82,45 @@ public class PartyController {
     ) {
         Page<PartyListResponseDto> responses = partyService.searchParties(keyword, categories, pageable);
         return BaseResponse.ok(responses);
+    }
+
+    @PostMapping("/{partyId}")
+    public BaseResponse<PartyJoinResponse> joinParty(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @PathVariable Long partyId,
+            @RequestBody(required = false) PartyJoinRequest request
+    ) {
+        PartyJoinResponse response =
+                partyService.joinParty(
+                        principal.memberId(),
+                        partyId,
+                        request
+                );
+
+        return BaseResponse.ok(response);
+    }
+
+    @DeleteMapping("/{partyId}/leave")
+    public BaseResponse<Void> leaveParty(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @PathVariable Long partyId
+    ) {
+        partyService.leaveParty(principal.memberId(), partyId);
+
+        return BaseResponse.ok();
+    }
+
+    @GetMapping("/{partyId}/me/monthly")
+    public BaseResponse<PartyMonthlyMeResponse> getMyMonthlyPartyStatus(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @PathVariable Long partyId
+    ) {
+        PartyMonthlyMeResponse response =
+                partyService.getMyMonthlyPartyStatus(
+                        principal.memberId(),
+                        partyId
+                );
+
+        return BaseResponse.ok(response);
     }
 }
