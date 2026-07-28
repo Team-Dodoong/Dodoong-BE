@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -85,6 +86,11 @@ public class DailyQuestService {
                             .incrementTotal();;
                 }
             }
+
+            dailyQuestRepository.countNoRoutineQuestsByPeriod(memberId, virtualStart, endDate)
+                    .forEach(p -> countMap
+                            .computeIfAbsent(p.getQuestDate(), k -> new DayCountAccumulator(0L, 0L))
+                            .addTotal(p.getTotalCount()));
         }
 
         List<DailyQuestCalendarResponse.DayCount> days = countMap.entrySet().stream()
@@ -108,6 +114,11 @@ public class DailyQuestService {
         }
 
         // 미래: 가상 전개
+        List<DailyQuestSummary> realQuests =
+                dailyQuestRepository.findSummariesByDateAndNoRoutine(memberId, date).stream()
+                        .map(DailyQuestSummary::from)
+                        .toList();
+
         List<Routine> activeRoutines =
                 routineRepository.findActiveRoutineWithRepeatDays(memberId, date);
 
@@ -117,7 +128,10 @@ public class DailyQuestService {
                 .map(DailyQuestSummary::virtualFrom)
                 .toList();
 
-        return new DailyQuestListResponse(date, virtualQuests);
+        List<DailyQuestSummary> merged =
+                Stream.concat(realQuests.stream(), virtualQuests.stream()).toList();
+
+        return new DailyQuestListResponse(date, merged);
     }
 
     public DailyQuestQuadrantResponse getQuadrant(Long memberId) {
@@ -239,6 +253,10 @@ public class DailyQuestService {
 
         void incrementTotal() {
             total++;
+        }
+
+        void addTotal(long delta) {
+            this.total += delta;
         }
 
         long total() {

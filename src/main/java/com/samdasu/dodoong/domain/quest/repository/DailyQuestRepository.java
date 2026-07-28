@@ -90,4 +90,39 @@ public interface DailyQuestRepository extends JpaRepository<DailyQuest, Long> {
     );
 
     Optional<DailyQuest> findByIdAndMemberId(Long id, Long memberId);
+
+    @Query("""
+    SELECT dq.id AS dailyQuestId,
+        dq.questCategory AS questCategory,
+        dq.content AS content,
+        dq.isChecked AS isChecked,
+        r.id AS routineId
+    FROM DailyQuest dq
+    LEFT JOIN dq.routine r
+    WHERE dq.member.id = :memberId
+        AND dq.questDate = :questDate
+        AND dq.routine IS NULL
+    ORDER BY dq.id ASC
+    """)
+    List<DailyQuestSummaryProjection> findSummariesByDateAndNoRoutine(
+            @Param("memberId") Long memberId,
+            @Param("questDate") LocalDate questDate
+    );
+
+    @Query("""
+    SELECT dq.questDate AS questDate,
+        COUNT(dq) AS totalCount,
+        SUM(CASE WHEN dq.isChecked = true THEN 1L ELSE 0L END) AS checkedCount
+    FROM DailyQuest dq
+    WHERE dq.member.id = :memberId
+        AND dq.questDate BETWEEN :startDate AND :endDate
+        AND dq.routine IS NULL
+    GROUP BY dq.questDate
+    ORDER BY dq.questDate ASC
+    """)
+    List<DailyQuestCountProjection> countNoRoutineQuestsByPeriod(
+            @Param("memberId") Long memberId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
 }
