@@ -60,3 +60,6 @@ app:
   cookie:
     secure: true
     same-site: None
+  cors:
+    allowed-origins:
+      - https://dodoong-fe.vercel.app
