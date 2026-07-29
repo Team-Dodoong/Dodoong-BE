@@ -51,3 +51,8 @@ jwt:
   secret: ${JWT_SECRET}
   access-token-expiration: 1800000
   refresh-token-expiration: 1209600000
+
+app:
+  cookie:
+    secure: false
+    same-site: Lax

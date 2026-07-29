@@ -3,6 +3,7 @@ package com.samdasu.dodoong.global.util;
 import com.samdasu.dodoong.global.config.JwtProperties;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,12 @@ import java.time.Duration;
 @Component
 @RequiredArgsConstructor
 public class CookieUtil {
+
+    @Value("${app.cookie.secure:false}")
+    private boolean secure;
+
+    @Value("${app.cookie.same-site:Lax}")
+    private String sameSite;
 
     public static final String ACCESS_TOKEN_COOKIE_NAME = "accessToken";
     public static final String REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
@@ -68,8 +75,8 @@ public class CookieUtil {
     ) {
         return ResponseCookie.from(name, value)
                 .httpOnly(true)
-                .secure(false)
-                .sameSite("Lax")        //TODO: 배포 후 secure, sameSite 변경 필요
+                .secure(secure)
+                .sameSite(sameSite)
                 .path("/")
                 .maxAge(Duration.ofMillis(expirationMillis))
                 .build();
@@ -78,8 +85,8 @@ public class CookieUtil {
     private ResponseCookie deleteCookie(String name) {
         return ResponseCookie.from(name, "")
                 .httpOnly(true)
-                .secure(false)
-                .sameSite("Lax")    //TODO: 배포 후 secure, sameSite 변경 필요
+                .secure(secure)
+                .sameSite(sameSite)
                 .path("/")
                 .maxAge(Duration.ZERO)
                 .build();
