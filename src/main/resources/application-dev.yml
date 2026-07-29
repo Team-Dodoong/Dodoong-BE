@@ -56,3 +56,6 @@ app:
   cookie:
     secure: false
     same-site: Lax
+  cors:
+    allowed-origins:
+      - http://localhost:3000
