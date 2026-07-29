@@ -14,10 +14,10 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class CookieUtil {
 
-    @Value("${app.cookie.secure}")
+    @Value("${app.cookie.secure:false}")
     private boolean secure;
 
-    @Value("${app.cookie.same-site}")
+    @Value("${app.cookie.same-site:Lax}")
     private String sameSite;
 
     public static final String ACCESS_TOKEN_COOKIE_NAME = "accessToken";
