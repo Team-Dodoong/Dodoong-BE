@@ -64,7 +64,7 @@ services:
     volumes:
       - ./nginx/dodoong.conf:/etc/nginx/conf.d/default.conf:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
-      - /var/www/certbot:/var/www/certbot:ro
+      - ./certbot-webroot:/var/www/certbot:ro
 
 volumes:
   mysql-data:
