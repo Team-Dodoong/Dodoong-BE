@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Table(name= "member")
+@Table(name= "members")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends BaseTimeEntity {
 
@@ -24,13 +24,13 @@ public class Member extends BaseTimeEntity {
     @Column(nullable = false, length = 255)
     private String password;
 
-    @Column(unique = true)
+    @Column(unique = true, length = 50)
     private String nickname;
 
     @Column
     private String profileImageUrl;
 
-    @Column
+    @Column(length = 255)
     private String introduction;
 
     @Column(nullable = false)
@@ -47,5 +47,54 @@ public class Member extends BaseTimeEntity {
     public Member(String loginId, String encodedPassword) {
         this.loginId = loginId;
         this.password = encodedPassword;
+    }
+
+    public void updateProfile(String nickname, String profileImageUrl, String introduction) {
+        if (nickname != null) {
+            this.nickname = nickname;
+        }
+
+        if (profileImageUrl != null) {
+            this.profileImageUrl = profileImageUrl;
+        }
+
+        if (introduction != null) {
+            this.introduction = introduction;
+        }
+    }
+    public void addExperience(int amount) {
+        this.experience += amount;
+    }
+
+    public void subtractExperience(int amount) {
+        this.experience -= Math.max(0, this.experience - amount);
+    }
+
+    //코인 보유량 검사
+    public boolean hasEnoughCoin(int amount){
+        return this.coin >= amount;
+    }
+    //코인 감소
+    public void spendCoin(int amount){
+        this.coin -= amount;
+    }
+    //코인 증가
+    public void earnCoin(int amount) {
+        this.coin += amount;
+    }
+
+    // 레벨업
+    public int calculateRequiredExperience() {
+        return (this.level + 1) * 100;
+    }
+
+    public boolean canLevelUp() {
+        return this.experience >= calculateRequiredExperience();
+    }
+
+    public void levelUp() {
+        this.level += 1;
+        this.experience = 0;
+        earnCoin(this.level * 10);
     }
 }

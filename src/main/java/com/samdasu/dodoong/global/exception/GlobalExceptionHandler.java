@@ -3,11 +3,13 @@ package com.samdasu.dodoong.global.exception;
 import com.samdasu.dodoong.global.response.base.BaseCode;
 import com.samdasu.dodoong.global.response.code.ErrorCode;
 import com.samdasu.dodoong.global.response.dto.ErrorResponse;
+import jakarta.persistence.LockTimeoutException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
@@ -78,6 +80,17 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAccessDenied(
             AccessDeniedException e, HttpServletRequest request) {
         return buildErrorResponse(ErrorCode.ACCESS_DENIED, request, null);
+    }
+
+    @ExceptionHandler({
+            PessimisticLockingFailureException.class,
+            LockTimeoutException.class
+    })
+    public ResponseEntity<ErrorResponse> handleLockTimeout(
+            Exception e,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(ErrorCode.LOCK_TIMEOUT, request, null);
     }
 
     // 예상하지 못한 모든 예외

@@ -1,5 +1,6 @@
 package com.samdasu.dodoong.domain.auth.security;
 
+import com.samdasu.dodoong.domain.auth.repository.AccessTokenBlacklistRepository;
 import com.samdasu.dodoong.global.util.CookieUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -7,10 +8,8 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication
-        .UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context
-        .SecurityContextHolder;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -23,6 +22,7 @@ import java.util.Collections;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final AccessTokenBlacklistRepository accessTokenBlacklistRepository;
 
     @Override
     protected void doFilterInternal(
@@ -34,11 +34,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String accessToken = resolveAccessToken(request);
 
         if (
-                accessToken != null &&
-                        !accessToken.isBlank() &&
-                        SecurityContextHolder
-                                .getContext()
-                                .getAuthentication() == null
+                accessToken != null
+                        && !accessToken.isBlank()
+                        && !accessTokenBlacklistRepository.exists(accessToken)
+                        && SecurityContextHolder
+                        .getContext()
+                        .getAuthentication() == null
         ) {
             setAuthentication(accessToken);
         }
@@ -50,9 +51,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         jwtTokenProvider
                 .extractAccessTokenPrincipal(accessToken)
                 .ifPresent(principal -> {
-                    UsernamePasswordAuthenticationToken
-                            authentication =
-                            createAuthentication(principal);
+                    UsernamePasswordAuthenticationToken authentication = createAuthentication(principal);
 
                     SecurityContextHolder
                             .getContext()

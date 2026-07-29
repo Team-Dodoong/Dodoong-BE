@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -85,5 +86,13 @@ public class Routine extends BaseTimeEntity {
             target = target.plusDays(1);
         }
         throw new CustomException(ErrorCode.ROUTINE_QUEST_DATE_NOT_FOUND);
+    }
+
+    public List<LocalDate> expandOccurrences(LocalDate from, LocalDate to) {
+        LocalDate effectiveEnd = to.isBefore(endDate) ? to : endDate;
+
+        return from.datesUntil(effectiveEnd.plusDays(1))
+                .filter(date -> repeatDays.contains(date.getDayOfWeek()))
+                .toList();
     }
 }

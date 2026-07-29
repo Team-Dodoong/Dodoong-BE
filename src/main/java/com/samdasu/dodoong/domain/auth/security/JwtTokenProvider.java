@@ -1,9 +1,10 @@
 package com.samdasu.dodoong.domain.auth.security;
 
-import com.samdasu.dodoong.domain.auth.dto.TokenResponse;
+import com.samdasu.dodoong.domain.auth.dto.response.TokenResponse;
 import com.samdasu.dodoong.global.config.JwtProperties;
 import com.samdasu.dodoong.domain.member.entity.Member;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -11,9 +12,11 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
+
 
 @Component
 public class JwtTokenProvider {
@@ -31,9 +34,7 @@ public class JwtTokenProvider {
     private final long refreshTokenExpiration;
 
     public JwtTokenProvider(JwtProperties jwtProperties) {
-        byte[] keyBytes = Decoders.BASE64.decode(
-                jwtProperties.secret()
-        );
+        byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.secret());
 
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
         this.accessTokenExpiration = jwtProperties.accessTokenExpiration();
@@ -47,8 +48,7 @@ public class JwtTokenProvider {
         );
     }
 
-    public Optional<CustomUserPrincipal>
-    extractAccessTokenPrincipal(String token) {
+    public Optional<CustomUserPrincipal> extractAccessTokenPrincipal(String token) {
         try {
             Claims claims = parseClaims(token);
 
@@ -62,12 +62,7 @@ public class JwtTokenProvider {
 
             String loginId = claims.get(LOGIN_ID_CLAIM, String.class);
 
-            return Optional.of(
-                    new CustomUserPrincipal(
-                            memberId,
-                            loginId
-                    )
-            );
+            return Optional.of(new CustomUserPrincipal(memberId, loginId));
         } catch (
                 JwtException |
                 IllegalArgumentException exception
@@ -91,10 +86,23 @@ public class JwtTokenProvider {
         }
     }
 
+    public Duration getRemainingExpiration(String token) {
+        try {
+            Date expiration = parseClaims(token).getExpiration();
+
+            long remainingMillis = expiration.getTime() - System.currentTimeMillis();
+
+            return Duration.ofMillis(Math.max(remainingMillis, 0));
+        } catch (
+                JwtException |
+                IllegalArgumentException exception
+        ) {
+            return Duration.ZERO;
+        }
+    }
+
     public Long getMemberId(String token) {
-        return Long.valueOf(
-                parseClaims(token).getSubject()
-        );
+        return Long.valueOf(parseClaims(token).getSubject());
     }
 
     private Claims parseClaims(String token) {
