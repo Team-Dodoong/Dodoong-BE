@@ -209,6 +209,17 @@ public class DailyQuestService {
         return DailyQuestPostponeResponse.from(dailyQuest);
     }
 
+    @Transactional
+    public void deleteDailyQuest(Long memberId, Long dailyQuestId) {
+        DailyQuest dailyQuest = dailyQuestRepository
+                .findByIdAndMemberId(dailyQuestId, memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.DAILY_QUEST_NOT_FOUND));
+
+        dailyQuest.checkDeletable();
+
+        dailyQuestRepository.delete(dailyQuest);
+    }
+
     // 퀘스트 단일 생성
     private DailyQuestCreateResponse createSingleQuest(
             Member member,

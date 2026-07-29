@@ -107,4 +107,10 @@ public class DailyQuest extends BaseTimeEntity {
         }
         this.questDate = this.questDate.plusDays(1);
     }
+
+    public void checkDeletable() {
+        if (isChecked) {
+            throw new CustomException(ErrorCode.DAILY_QUEST_CANNOT_BE_DELETED);
+        }
+    }
 }
