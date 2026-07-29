@@ -215,6 +215,8 @@ public class DailyQuestService {
                 .findByIdAndMemberId(dailyQuestId, memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.DAILY_QUEST_NOT_FOUND));
 
+        dailyQuest.checkDeletable();
+
         dailyQuestRepository.delete(dailyQuest);
     }
 
