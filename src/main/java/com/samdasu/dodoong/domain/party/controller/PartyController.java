@@ -181,6 +181,6 @@ public class PartyController {
                         image
                 );
 
-        return BaseResponse.ok(response);
+        return BaseResponse.created(response);
     }
 }
