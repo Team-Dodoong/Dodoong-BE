@@ -5,6 +5,7 @@ import com.samdasu.dodoong.domain.member.repository.MemberRepository;
 import com.samdasu.dodoong.domain.party.dto.request.PartyJoinRequest;
 import com.samdasu.dodoong.domain.party.dto.response.PartyJoinResponse;
 import com.samdasu.dodoong.domain.party.dto.response.PartyMonthlyMeResponse;
+import com.samdasu.dodoong.domain.party.dto.response.PartyMonthlyRankingResponse;
 import com.samdasu.dodoong.domain.party.dto.response.PartyVerificationHistoryResponse;
 import com.samdasu.dodoong.domain.party.dto.response.PartyVerificationResponse;
 import com.samdasu.dodoong.domain.party.entity.Party;
@@ -14,6 +15,7 @@ import com.samdasu.dodoong.domain.party.entity.PartyVerification;
 import com.samdasu.dodoong.domain.party.repository.PartyMemberRepository;
 import com.samdasu.dodoong.domain.party.repository.PartyRepository;
 import com.samdasu.dodoong.domain.party.repository.PartyVerificationRepository;
+import com.samdasu.dodoong.domain.party.repository.projection.MonthlyPartyVerificationCountProjection;
 import com.samdasu.dodoong.domain.quest.repository.DailyQuestRepository;
 import com.samdasu.dodoong.domain.quest.repository.projection.MonthlyPartyParticipationProjection;
 import com.samdasu.dodoong.global.exception.CustomException;
@@ -272,6 +274,83 @@ class PartyServiceTest {
     }
 
     @Test
+    void getPartyMonthlyRanking() {
+        Long memberId = 7L;
+        Long partyId = 3L;
+        Party party = createParty(partyId, "매일 알고리즘 풀기", null, 10, true);
+        YearMonth currentMonth = YearMonth.now(ZONE_KST);
+
+        PartyMember partyMember1 = createPartyMember(
+                15L,
+                createMember(7L, "eunseo", "은서", "https://example.com/profiles/7.jpg"),
+                party
+        );
+        PartyMember partyMember2 = createPartyMember(
+                16L,
+                createMember(8L, "minji", "민지", null),
+                party
+        );
+        PartyMember partyMember3 = createPartyMember(
+                17L,
+                createMember(9L, "yunsu", "윤수", "https://example.com/profiles/9.jpg"),
+                party
+        );
+        PartyMember partyMember4 = createPartyMember(
+                18L,
+                createMember(10L, "jiho", "지호", null),
+                party
+        );
+
+        when(partyRepository.findById(partyId)).thenReturn(Optional.of(party));
+        when(partyMemberRepository.existsByMemberIdAndPartyId(memberId, partyId)).thenReturn(true);
+        when(partyMemberRepository.findAllByPartyIdWithMember(partyId))
+                .thenReturn(List.of(partyMember1, partyMember2, partyMember3, partyMember4));
+        when(partyVerificationRepository.countMonthlyVerificationCounts(eq(partyId), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(List.of(
+                        new TestMonthlyPartyVerificationCountProjection(7L, 12L),
+                        new TestMonthlyPartyVerificationCountProjection(8L, 10L),
+                        new TestMonthlyPartyVerificationCountProjection(9L, 10L)
+                ));
+
+        PartyMonthlyRankingResponse response = partyService.getPartyMonthlyRanking(memberId, partyId);
+
+        assertThat(response.partyId()).isEqualTo(3L);
+        assertThat(response.partyName()).isEqualTo("매일 알고리즘 풀기");
+        assertThat(response.year()).isEqualTo(currentMonth.getYear());
+        assertThat(response.month()).isEqualTo(currentMonth.getMonthValue());
+        assertThat(response.rankings()).hasSize(4);
+        assertThat(response.rankings().get(0).rank()).isEqualTo(1);
+        assertThat(response.rankings().get(0).memberId()).isEqualTo(7L);
+        assertThat(response.rankings().get(0).nickname()).isEqualTo("은서");
+        assertThat(response.rankings().get(0).profileImageUrl()).isEqualTo("https://example.com/profiles/7.jpg");
+        assertThat(response.rankings().get(0).score()).isEqualTo(12L);
+        assertThat(response.rankings().get(0).verificationCount()).isEqualTo(12L);
+        assertThat(response.rankings().get(1).rank()).isEqualTo(2);
+        assertThat(response.rankings().get(1).memberId()).isEqualTo(8L);
+        assertThat(response.rankings().get(2).rank()).isEqualTo(2);
+        assertThat(response.rankings().get(2).memberId()).isEqualTo(9L);
+        assertThat(response.rankings().get(3).rank()).isEqualTo(3);
+        assertThat(response.rankings().get(3).memberId()).isEqualTo(10L);
+        assertThat(response.rankings().get(3).score()).isEqualTo(0L);
+        assertThat(response.rankings().get(3).verificationCount()).isEqualTo(0L);
+    }
+
+    @Test
+    void getPartyMonthlyRankingThrowsWhenMemberIsNotInParty() {
+        Long memberId = 7L;
+        Long partyId = 3L;
+        Party party = createParty(partyId, "매일 알고리즘 풀기", null, 10, true);
+
+        when(partyRepository.findById(partyId)).thenReturn(Optional.of(party));
+        when(partyMemberRepository.existsByMemberIdAndPartyId(memberId, partyId)).thenReturn(false);
+
+        assertThatThrownBy(() -> partyService.getPartyMonthlyRanking(memberId, partyId))
+                .isInstanceOf(CustomException.class)
+                .extracting(exception -> ((CustomException) exception).getBaseCode())
+                .isEqualTo(ErrorCode.PARTY_MONTHLY_RANKING_FORBIDDEN);
+    }
+
+    @Test
     void getPartyVerificationHistory() {
         Long memberId = 7L;
         Long partyId = 3L;
@@ -519,6 +598,22 @@ class PartyServiceTest {
         @Override
         public Long getParticipationCount() {
             return participationCount;
+        }
+    }
+
+    private record TestMonthlyPartyVerificationCountProjection(
+            Long memberId,
+            Long verificationCount
+    ) implements MonthlyPartyVerificationCountProjection {
+
+        @Override
+        public Long getMemberId() {
+            return memberId;
+        }
+
+        @Override
+        public Long getVerificationCount() {
+            return verificationCount;
         }
     }
 }

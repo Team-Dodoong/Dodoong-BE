@@ -5,6 +5,8 @@ import com.samdasu.dodoong.domain.member.repository.MemberRepository;
 import com.samdasu.dodoong.domain.party.dto.request.PartyJoinRequest;
 import com.samdasu.dodoong.domain.party.dto.response.PartyJoinResponse;
 import com.samdasu.dodoong.domain.party.dto.response.PartyMonthlyMeResponse;
+import com.samdasu.dodoong.domain.party.dto.response.PartyMonthlyRankingItemResponse;
+import com.samdasu.dodoong.domain.party.dto.response.PartyMonthlyRankingResponse;
 import com.samdasu.dodoong.domain.party.dto.request.PartyRequestDto;
 import com.samdasu.dodoong.domain.party.dto.request.PartyUpdateRequestDto;
 import com.samdasu.dodoong.domain.party.dto.response.PartyListResponseDto;
@@ -20,6 +22,7 @@ import com.samdasu.dodoong.domain.party.entity.PartyVerification;
 import com.samdasu.dodoong.domain.party.repository.PartyMemberRepository;
 import com.samdasu.dodoong.domain.party.repository.PartyRepository;
 import com.samdasu.dodoong.domain.party.repository.PartyVerificationRepository;
+import com.samdasu.dodoong.domain.party.repository.projection.MonthlyPartyVerificationCountProjection;
 import com.samdasu.dodoong.domain.quest.repository.DailyQuestRepository;
 import com.samdasu.dodoong.domain.quest.repository.projection.MonthlyPartyParticipationProjection;
 import com.samdasu.dodoong.global.exception.CustomException;
@@ -192,6 +195,43 @@ public class PartyService {
         );
     }
 
+    public PartyMonthlyRankingResponse getPartyMonthlyRanking(
+            Long memberId,
+            Long partyId
+    ) {
+        Party party = findParty(partyId);
+        validatePartyMonthlyRankingAccess(memberId, partyId);
+
+        LocalDate today = LocalDate.now(ZONE_KST);
+        YearMonth currentMonth = YearMonth.from(today);
+        LocalDate startDate = currentMonth.atDay(1);
+        LocalDate endDate = currentMonth.atEndOfMonth();
+
+        List<PartyMember> partyMembers = partyMemberRepository.findAllByPartyIdWithMember(partyId);
+        Map<Long, Long> verificationCountMap =
+                partyVerificationRepository.countMonthlyVerificationCounts(
+                                partyId,
+                                startDate,
+                                endDate
+                        )
+                        .stream()
+                        .collect(Collectors.toMap(
+                                MonthlyPartyVerificationCountProjection::getMemberId,
+                                MonthlyPartyVerificationCountProjection::getVerificationCount
+                        ));
+
+        List<PartyMonthlyRankingItemResponse> rankings = buildMonthlyRankings(
+                partyMembers,
+                verificationCountMap
+        );
+
+        return PartyMonthlyRankingResponse.of(
+                party,
+                currentMonth,
+                rankings
+        );
+    }
+
     public PartyVerificationHistoryResponse getPartyVerificationHistory(
             Long memberId,
             Long partyId,
@@ -313,6 +353,12 @@ public class PartyService {
         }
     }
 
+    private void validatePartyMonthlyRankingAccess(Long memberId, Long partyId) {
+        if (!partyMemberRepository.existsByMemberIdAndPartyId(memberId, partyId)) {
+            throw new CustomException(ErrorCode.PARTY_MONTHLY_RANKING_FORBIDDEN);
+        }
+    }
+
     private PartyMember findPartyMemberForVerification(Long memberId, Long partyId) {
         return partyMemberRepository.findByMemberIdAndPartyIdForUpdate(memberId, partyId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PARTY_MEMBER_ONLY));
@@ -345,6 +391,44 @@ public class PartyService {
                         verification -> verification.getPartyMember().getId(),
                         verification -> verification
                 ));
+    }
+
+    private List<PartyMonthlyRankingItemResponse> buildMonthlyRankings(
+            List<PartyMember> partyMembers,
+            Map<Long, Long> verificationCountMap
+    ) {
+        List<MemberMonthlyVerificationStat> sortedStats = partyMembers.stream()
+                .map(partyMember -> new MemberMonthlyVerificationStat(
+                        partyMember,
+                        verificationCountMap.getOrDefault(partyMember.getMember().getId(), 0L)
+                ))
+                .sorted(
+                        Comparator.comparingLong(MemberMonthlyVerificationStat::verificationCount)
+                                .reversed()
+                                .thenComparing(stat -> stat.partyMember().getMember().getId())
+                )
+                .toList();
+
+        int currentRank = 0;
+        Long previousScore = null;
+        List<PartyMonthlyRankingItemResponse> rankings = new java.util.ArrayList<>();
+
+        for (MemberMonthlyVerificationStat stat : sortedStats) {
+            if (!Objects.equals(previousScore, stat.verificationCount())) {
+                currentRank++;
+                previousScore = stat.verificationCount();
+            }
+
+            rankings.add(
+                    PartyMonthlyRankingItemResponse.of(
+                            currentRank,
+                            stat.partyMember(),
+                            stat.verificationCount()
+                    )
+            );
+        }
+
+        return rankings;
     }
 
     private int calculateRank(
@@ -419,6 +503,12 @@ public class PartyService {
     private record ParticipationRank(
             Long memberId,
             long participationCount
+    ) {
+    }
+
+    private record MemberMonthlyVerificationStat(
+            PartyMember partyMember,
+            long verificationCount
     ) {
     }
 }

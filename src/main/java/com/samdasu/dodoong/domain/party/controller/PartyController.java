@@ -4,6 +4,7 @@ import com.samdasu.dodoong.domain.auth.security.CustomUserPrincipal;
 import com.samdasu.dodoong.domain.party.dto.request.PartyRequestDto;
 import com.samdasu.dodoong.domain.party.dto.request.PartyUpdateRequestDto;
 import com.samdasu.dodoong.domain.party.dto.response.PartyListResponseDto;
+import com.samdasu.dodoong.domain.party.dto.response.PartyMonthlyRankingResponse;
 import com.samdasu.dodoong.domain.party.dto.response.PartyResponseDto;
 import com.samdasu.dodoong.domain.party.dto.response.PartyVerificationHistoryResponse;
 import com.samdasu.dodoong.domain.party.dto.response.PartyVerificationResponse;
@@ -125,6 +126,20 @@ public class PartyController {
     ) {
         PartyMonthlyMeResponse response =
                 partyService.getMyMonthlyPartyStatus(
+                        principal.memberId(),
+                        partyId
+                );
+
+        return BaseResponse.ok(response);
+    }
+
+    @GetMapping({"/{partyId}/ranking/monthly", "/{partyId}/rankings/monthly"})
+    public BaseResponse<PartyMonthlyRankingResponse> getPartyMonthlyRanking(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @PathVariable Long partyId
+    ) {
+        PartyMonthlyRankingResponse response =
+                partyService.getPartyMonthlyRanking(
                         principal.memberId(),
                         partyId
                 );

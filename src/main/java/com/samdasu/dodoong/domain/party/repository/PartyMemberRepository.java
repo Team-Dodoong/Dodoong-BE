@@ -52,6 +52,15 @@ public interface PartyMemberRepository extends JpaRepository<PartyMember, Long> 
     );
 
     @Query("""
+    SELECT pm
+    FROM PartyMember pm
+    JOIN FETCH pm.member
+    WHERE pm.party.id = :partyId
+    ORDER BY pm.id ASC
+    """)
+    List<PartyMember> findAllByPartyIdWithMember(@Param("partyId") Long partyId);
+
+    @Query("""
     SELECT pm.member.id
     FROM PartyMember pm
     WHERE pm.party.id = :partyId
