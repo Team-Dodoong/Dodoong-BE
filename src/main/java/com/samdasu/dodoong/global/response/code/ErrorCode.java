@@ -81,7 +81,11 @@ public enum ErrorCode implements BaseCode {
     PARTY_MEMBER_ONLY(HttpStatus.FORBIDDEN, "해당 파티에 가입한 회원만 조회할 수 있습니다."),
     // 404 NOT FOUND
     PARTY_NOT_FOUND(HttpStatus.NOT_FOUND,"존재하지 않는 파티입니다."),
-    PARTY_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND,"파티에 해당 회원이 존재하지 않습니다.");
+    PARTY_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND,"파티에 해당 회원이 존재하지 않습니다."),
+
+    // S3
+    // 400 BAD REQUEST
+    UNSUPPORTED_IMAGE_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 이미지 형식입니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
