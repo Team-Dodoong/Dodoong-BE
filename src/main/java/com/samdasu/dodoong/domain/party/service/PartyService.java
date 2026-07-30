@@ -238,6 +238,7 @@ public class PartyService {
             Long cursor,
             int size
     ) {
+        validatePartyVerificationHistoryPageSize(size);
         findParty(partyId);
         validatePartyVerificationHistoryAccess(memberId, partyId);
 
@@ -350,6 +351,12 @@ public class PartyService {
     private void validatePartyVerificationHistoryAccess(Long memberId, Long partyId) {
         if (!partyMemberRepository.existsByMemberIdAndPartyId(memberId, partyId)) {
             throw new CustomException(ErrorCode.PARTY_VERIFICATION_HISTORY_FORBIDDEN);
+        }
+    }
+
+    private void validatePartyVerificationHistoryPageSize(int size) {
+        if (size < 1) {
+            throw new CustomException(ErrorCode.INVALID_FIELD_ERROR);
         }
     }
 

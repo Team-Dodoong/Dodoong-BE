@@ -433,6 +433,16 @@ class PartyServiceTest {
     }
 
     @Test
+    void getPartyVerificationHistoryThrowsWhenSizeIsLessThanOne() {
+        assertThatThrownBy(() -> partyService.getPartyVerificationHistory(7L, 3L, null, 0))
+                .isInstanceOf(CustomException.class)
+                .extracting(exception -> ((CustomException) exception).getBaseCode())
+                .isEqualTo(ErrorCode.INVALID_FIELD_ERROR);
+
+        verifyNoInteractions(partyRepository, partyMemberRepository, partyVerificationRepository);
+    }
+
+    @Test
     void createPartyVerification() {
         Long memberId = 7L;
         Long partyId = 3L;
