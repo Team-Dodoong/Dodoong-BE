@@ -63,3 +63,4 @@ app:
   cors:
     allowed-origins:
       - https://dodoong-fe.vercel.app
+      - http://localhost:5173
