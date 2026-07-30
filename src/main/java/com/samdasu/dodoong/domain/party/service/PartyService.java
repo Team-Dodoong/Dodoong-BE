@@ -9,6 +9,8 @@ import com.samdasu.dodoong.domain.party.dto.request.PartyRequestDto;
 import com.samdasu.dodoong.domain.party.dto.request.PartyUpdateRequestDto;
 import com.samdasu.dodoong.domain.party.dto.response.PartyListResponseDto;
 import com.samdasu.dodoong.domain.party.dto.response.PartyResponseDto;
+import com.samdasu.dodoong.domain.party.dto.response.PartyVerificationHistoryItemResponse;
+import com.samdasu.dodoong.domain.party.dto.response.PartyVerificationHistoryResponse;
 import com.samdasu.dodoong.domain.party.dto.response.PartyVerificationResponse;
 import com.samdasu.dodoong.domain.party.entity.Party;
 import com.samdasu.dodoong.domain.party.entity.PartyCategory;
@@ -26,6 +28,7 @@ import com.samdasu.dodoong.global.storage.FileStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -189,6 +192,51 @@ public class PartyService {
         );
     }
 
+    public PartyVerificationHistoryResponse getPartyVerificationHistory(
+            Long memberId,
+            Long partyId,
+            Long cursor,
+            int size
+    ) {
+        findParty(partyId);
+        validatePartyVerificationHistoryAccess(memberId, partyId);
+
+        LocalDate today = LocalDate.now(ZONE_KST);
+        List<PartyMember> fetchedPartyMembers = partyMemberRepository.findVerificationPageByPartyId(
+                partyId,
+                cursor,
+                PageRequest.of(0, size + 1)
+        );
+
+        boolean hasNext = fetchedPartyMembers.size() > size;
+        List<PartyMember> pagePartyMembers = hasNext
+                ? fetchedPartyMembers.subList(0, size)
+                : fetchedPartyMembers;
+
+        Map<Long, PartyVerification> verificationMap = findVerificationMap(pagePartyMembers, today);
+
+        List<PartyVerificationHistoryItemResponse> verifications = pagePartyMembers.stream()
+                .map(partyMember -> PartyVerificationHistoryItemResponse.of(
+                        partyMember,
+                        verificationMap.get(partyMember.getId())
+                ))
+                .toList();
+
+        Long nextCursor = verifications.isEmpty()
+                ? null
+                : verifications.get(verifications.size() - 1).partyMemberId();
+
+        return PartyVerificationHistoryResponse.of(
+                partyId,
+                today,
+                Math.toIntExact(partyMemberRepository.countByPartyId(partyId)),
+                Math.toIntExact(partyVerificationRepository.countByPartyIdAndVerificationDate(partyId, today)),
+                verifications,
+                nextCursor,
+                hasNext
+        );
+    }
+
     @Transactional
     public PartyVerificationResponse createPartyVerification(
             Long memberId,
@@ -259,6 +307,12 @@ public class PartyService {
         }
     }
 
+    private void validatePartyVerificationHistoryAccess(Long memberId, Long partyId) {
+        if (!partyMemberRepository.existsByMemberIdAndPartyId(memberId, partyId)) {
+            throw new CustomException(ErrorCode.PARTY_VERIFICATION_HISTORY_FORBIDDEN);
+        }
+    }
+
     private PartyMember findPartyMemberForVerification(Long memberId, Long partyId) {
         return partyMemberRepository.findByMemberIdAndPartyIdForUpdate(memberId, partyId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PARTY_MEMBER_ONLY));
@@ -268,6 +322,29 @@ public class PartyService {
         if (image == null || image.isEmpty()) {
             throw new CustomException(ErrorCode.PARTY_VERIFICATION_IMAGE_REQUIRED);
         }
+    }
+
+    private Map<Long, PartyVerification> findVerificationMap(
+            List<PartyMember> partyMembers,
+            LocalDate verificationDate
+    ) {
+        List<Long> partyMemberIds = partyMembers.stream()
+                .map(PartyMember::getId)
+                .toList();
+
+        if (partyMemberIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return partyVerificationRepository.findByPartyMemberIdsAndVerificationDate(
+                        partyMemberIds,
+                        verificationDate
+                )
+                .stream()
+                .collect(Collectors.toMap(
+                        verification -> verification.getPartyMember().getId(),
+                        verification -> verification
+                ));
     }
 
     private int calculateRank(

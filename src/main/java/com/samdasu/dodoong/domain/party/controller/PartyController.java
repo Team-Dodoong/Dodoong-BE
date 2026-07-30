@@ -5,6 +5,7 @@ import com.samdasu.dodoong.domain.party.dto.request.PartyRequestDto;
 import com.samdasu.dodoong.domain.party.dto.request.PartyUpdateRequestDto;
 import com.samdasu.dodoong.domain.party.dto.response.PartyListResponseDto;
 import com.samdasu.dodoong.domain.party.dto.response.PartyResponseDto;
+import com.samdasu.dodoong.domain.party.dto.response.PartyVerificationHistoryResponse;
 import com.samdasu.dodoong.domain.party.dto.response.PartyVerificationResponse;
 import com.samdasu.dodoong.domain.party.entity.PartyCategory;
 import com.samdasu.dodoong.domain.party.dto.request.PartyJoinRequest;
@@ -12,6 +13,8 @@ import com.samdasu.dodoong.domain.party.dto.response.PartyJoinResponse;
 import com.samdasu.dodoong.domain.party.dto.response.PartyMonthlyMeResponse;
 import com.samdasu.dodoong.domain.party.service.PartyService;
 import com.samdasu.dodoong.global.response.dto.BaseResponse;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -20,12 +23,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @RestController
+@Validated
 @RequiredArgsConstructor
 @RequestMapping("/api/parties")
 public class PartyController {
@@ -122,6 +127,24 @@ public class PartyController {
                 partyService.getMyMonthlyPartyStatus(
                         principal.memberId(),
                         partyId
+                );
+
+        return BaseResponse.ok(response);
+    }
+
+    @GetMapping("/{partyId}/verifications")
+    public BaseResponse<PartyVerificationHistoryResponse> getPartyVerificationHistory(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @PathVariable Long partyId,
+            @RequestParam(required = false) @Positive Long cursor,
+            @RequestParam(defaultValue = "20") @Positive @Max(100) int size
+    ) {
+        PartyVerificationHistoryResponse response =
+                partyService.getPartyVerificationHistory(
+                        principal.memberId(),
+                        partyId,
+                        cursor,
+                        size
                 );
 
         return BaseResponse.ok(response);

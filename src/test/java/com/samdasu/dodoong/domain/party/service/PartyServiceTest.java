@@ -5,6 +5,7 @@ import com.samdasu.dodoong.domain.member.repository.MemberRepository;
 import com.samdasu.dodoong.domain.party.dto.request.PartyJoinRequest;
 import com.samdasu.dodoong.domain.party.dto.response.PartyJoinResponse;
 import com.samdasu.dodoong.domain.party.dto.response.PartyMonthlyMeResponse;
+import com.samdasu.dodoong.domain.party.dto.response.PartyVerificationHistoryResponse;
 import com.samdasu.dodoong.domain.party.dto.response.PartyVerificationResponse;
 import com.samdasu.dodoong.domain.party.entity.Party;
 import com.samdasu.dodoong.domain.party.entity.PartyMember;
@@ -271,6 +272,88 @@ class PartyServiceTest {
     }
 
     @Test
+    void getPartyVerificationHistory() {
+        Long memberId = 7L;
+        Long partyId = 3L;
+        LocalDate today = LocalDate.now(ZONE_KST);
+        Party party = createParty(partyId, "미라클 모닝", null, 10, true);
+
+        Member member1 = createMember(7L, "dodoong", "은서", "https://example.com/profiles/7.jpg");
+        Member member2 = createMember(8L, "minji", "민지", null);
+        Member member3 = createMember(9L, "yunsu", "윤수", "https://example.com/profiles/9.jpg");
+        Member member4 = createMember(10L, "jiho", "지호", "https://example.com/profiles/10.jpg");
+
+        PartyMember partyMember1 = createPartyMember(15L, member1, party);
+        PartyMember partyMember2 = createPartyMember(16L, member2, party);
+        PartyMember partyMember3 = createPartyMember(17L, member3, party);
+        PartyMember partyMember4 = createPartyMember(18L, member4, party);
+
+        PartyVerification verification1 = createVerification(
+                24L,
+                party,
+                partyMember1,
+                "https://example.com/verifications/24.jpg",
+                LocalDateTime.of(2026, 7, 13, 8, 32, 14),
+                today
+        );
+        PartyVerification verification2 = createVerification(
+                25L,
+                party,
+                partyMember2,
+                "https://example.com/verifications/25.jpg",
+                LocalDateTime.of(2026, 7, 13, 9, 10, 25),
+                today
+        );
+
+        when(partyRepository.findById(partyId)).thenReturn(Optional.of(party));
+        when(partyMemberRepository.existsByMemberIdAndPartyId(memberId, partyId)).thenReturn(true);
+        when(partyMemberRepository.findVerificationPageByPartyId(eq(partyId), isNull(), any()))
+                .thenReturn(List.of(partyMember1, partyMember2, partyMember3, partyMember4));
+        when(partyVerificationRepository.findByPartyMemberIdsAndVerificationDate(List.of(15L, 16L, 17L), today))
+                .thenReturn(List.of(verification1, verification2));
+        when(partyMemberRepository.countByPartyId(partyId)).thenReturn(4L);
+        when(partyVerificationRepository.countByPartyIdAndVerificationDate(partyId, today)).thenReturn(3L);
+
+        PartyVerificationHistoryResponse response =
+                partyService.getPartyVerificationHistory(memberId, partyId, null, 3);
+
+        assertThat(response.partyId()).isEqualTo(3L);
+        assertThat(response.date()).isEqualTo(today);
+        assertThat(response.totalMemberCount()).isEqualTo(4);
+        assertThat(response.verifiedMemberCount()).isEqualTo(3);
+        assertThat(response.verifications()).hasSize(3);
+        assertThat(response.verifications().get(0).partyMemberId()).isEqualTo(15L);
+        assertThat(response.verifications().get(0).nickname()).isEqualTo("은서");
+        assertThat(response.verifications().get(0).profileImageUrl()).isEqualTo("https://example.com/profiles/7.jpg");
+        assertThat(response.verifications().get(0).verified()).isTrue();
+        assertThat(response.verifications().get(0).verificationId()).isEqualTo(24L);
+        assertThat(response.verifications().get(0).verifiedAt()).isEqualTo(LocalDateTime.of(2026, 7, 13, 8, 32, 14));
+        assertThat(response.verifications().get(2).partyMemberId()).isEqualTo(17L);
+        assertThat(response.verifications().get(2).nickname()).isEqualTo("윤수");
+        assertThat(response.verifications().get(2).verified()).isFalse();
+        assertThat(response.verifications().get(2).verificationId()).isNull();
+        assertThat(response.verifications().get(2).imageUrl()).isNull();
+        assertThat(response.verifications().get(2).verifiedAt()).isNull();
+        assertThat(response.nextCursor()).isEqualTo(17L);
+        assertThat(response.hasNext()).isTrue();
+    }
+
+    @Test
+    void getPartyVerificationHistoryThrowsWhenMemberIsNotInParty() {
+        Long memberId = 7L;
+        Long partyId = 3L;
+        Party party = createParty(partyId, "미라클 모닝", null, 10, true);
+
+        when(partyRepository.findById(partyId)).thenReturn(Optional.of(party));
+        when(partyMemberRepository.existsByMemberIdAndPartyId(memberId, partyId)).thenReturn(false);
+
+        assertThatThrownBy(() -> partyService.getPartyVerificationHistory(memberId, partyId, null, 20))
+                .isInstanceOf(CustomException.class)
+                .extracting(exception -> ((CustomException) exception).getBaseCode())
+                .isEqualTo(ErrorCode.PARTY_VERIFICATION_HISTORY_FORBIDDEN);
+    }
+
+    @Test
     void createPartyVerification() {
         Long memberId = 7L;
         Long partyId = 3L;
@@ -384,13 +467,43 @@ class PartyServiceTest {
     }
 
     private Member createMember(Long memberId, String loginId, String nickname) {
+        return createMember(memberId, loginId, nickname, null);
+    }
+
+    private Member createMember(
+            Long memberId,
+            String loginId,
+            String nickname,
+            String profileImageUrl
+    ) {
         Member member = Member.builder()
                 .loginId(loginId)
                 .encodedPassword("encodedPassword")
                 .build();
         ReflectionTestUtils.setField(member, "id", memberId);
         ReflectionTestUtils.setField(member, "nickname", nickname);
+        ReflectionTestUtils.setField(member, "profileImageUrl", profileImageUrl);
         return member;
+    }
+
+    private PartyVerification createVerification(
+            Long verificationId,
+            Party party,
+            PartyMember partyMember,
+            String imageUrl,
+            LocalDateTime createdAt,
+            LocalDate verificationDate
+    ) {
+        PartyVerification verification = PartyVerification.builder()
+                .party(party)
+                .partyMember(partyMember)
+                .imageUrl(imageUrl)
+                .verified(true)
+                .verificationDate(verificationDate)
+                .build();
+        ReflectionTestUtils.setField(verification, "id", verificationId);
+        ReflectionTestUtils.setField(verification, "createdAt", createdAt);
+        return verification;
     }
 
     private record TestMonthlyPartyParticipationProjection(
