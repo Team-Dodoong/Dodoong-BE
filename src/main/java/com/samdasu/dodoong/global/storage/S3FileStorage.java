@@ -68,7 +68,7 @@ public class S3FileStorage implements FileStorage {
 
     @Override
     public String toPublicUrl(String key) {
-        return props.baseUrl() + "/" + key;
+        return stripTrailingSlash(props.baseUrl()) + "/" + key;
     }
 
     @Override
@@ -87,10 +87,12 @@ public class S3FileStorage implements FileStorage {
         return ext;
     }
 
-    private String buildKey(String directory, String ext) {
-        String normalized = directory.endsWith("/")
-                ? directory.substring(0, directory.length() - 1)
-                : directory;
-        return normalized + "/" + UUID.randomUUID() + ext;
+    // directory("profiles/3") + uuid + 확장자 → "profiles/3/{uuid}.jpg"
+    private String buildKey(String directory, String extension) {
+        return stripTrailingSlash(directory) + "/" + UUID.randomUUID() + extension;
+    }
+
+    private String stripTrailingSlash(String value) {
+        return value.endsWith("/") ? value.substring(0, value.length() - 1) : value;
     }
 }
