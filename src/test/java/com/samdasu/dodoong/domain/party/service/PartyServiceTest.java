@@ -24,6 +24,7 @@ import com.samdasu.dodoong.global.storage.FileStorage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -466,10 +467,12 @@ class PartyServiceTest {
         ReflectionTestUtils.setField(verification, "createdAt", LocalDateTime.of(2026, 7, 13, 23, 26, 41));
 
         when(partyRepository.findById(partyId)).thenReturn(Optional.of(party));
+        when(partyMemberRepository.findByMemberIdAndPartyId(memberId, partyId))
+                .thenReturn(Optional.of(partyMember));
         when(partyMemberRepository.findByMemberIdAndPartyIdForUpdate(memberId, partyId))
                 .thenReturn(Optional.of(partyMember));
         when(partyVerificationRepository.existsByPartyMemberIdAndVerificationDate(eq(15L), any(LocalDate.class)))
-                .thenReturn(false);
+                .thenReturn(false, false);
         when(fileStorage.upload(image, "party-verifications/3/7"))
                 .thenReturn("https://example.com/verifications/24.jpg");
         when(partyVerificationRepository.save(any(PartyVerification.class))).thenReturn(verification);
@@ -484,6 +487,21 @@ class PartyServiceTest {
         assertThat(response.imageUrl()).isEqualTo("https://example.com/verifications/24.jpg");
         assertThat(response.verified()).isTrue();
         assertThat(response.createdAt()).isEqualTo(LocalDateTime.of(2026, 7, 13, 23, 26, 41));
+
+        InOrder inOrder = inOrder(
+                partyRepository,
+                partyMemberRepository,
+                partyVerificationRepository,
+                fileStorage
+        );
+        inOrder.verify(partyRepository).findById(partyId);
+        inOrder.verify(partyMemberRepository).findByMemberIdAndPartyId(memberId, partyId);
+        inOrder.verify(partyVerificationRepository)
+                .existsByPartyMemberIdAndVerificationDate(eq(15L), any(LocalDate.class));
+        inOrder.verify(fileStorage).upload(image, "party-verifications/3/7");
+        inOrder.verify(partyMemberRepository).findByMemberIdAndPartyIdForUpdate(memberId, partyId);
+        inOrder.verify(partyVerificationRepository)
+                .existsByPartyMemberIdAndVerificationDate(eq(15L), any(LocalDate.class));
     }
 
     @Test
@@ -509,7 +527,7 @@ class PartyServiceTest {
         );
 
         when(partyRepository.findById(partyId)).thenReturn(Optional.of(party));
-        when(partyMemberRepository.findByMemberIdAndPartyIdForUpdate(memberId, partyId))
+        when(partyMemberRepository.findByMemberIdAndPartyId(memberId, partyId))
                 .thenReturn(Optional.of(partyMember));
         when(partyVerificationRepository.existsByPartyMemberIdAndVerificationDate(eq(15L), any(LocalDate.class)))
                 .thenReturn(true);
@@ -520,6 +538,7 @@ class PartyServiceTest {
                 .isEqualTo(ErrorCode.PARTY_ALREADY_VERIFIED_TODAY);
 
         verify(fileStorage, never()).upload(any(), any());
+        verify(partyMemberRepository, never()).findByMemberIdAndPartyIdForUpdate(any(), any());
     }
 
     private Party createParty(

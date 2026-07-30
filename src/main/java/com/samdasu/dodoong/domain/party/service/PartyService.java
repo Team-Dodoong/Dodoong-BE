@@ -287,7 +287,7 @@ public class PartyService {
         validateVerificationImage(image);
 
         Party party = findParty(partyId);
-        PartyMember partyMember = findPartyMemberForVerification(memberId, partyId);
+        PartyMember partyMember = findPartyMember(memberId, partyId);
         LocalDate today = LocalDate.now(ZONE_KST);
 
         if (partyVerificationRepository.existsByPartyMemberIdAndVerificationDate(partyMember.getId(), today)) {
@@ -299,10 +299,16 @@ public class PartyService {
                 "party-verifications/" + partyId + "/" + memberId
         );
 
+        PartyMember lockedPartyMember = findPartyMemberForVerification(memberId, partyId);
+
+        if (partyVerificationRepository.existsByPartyMemberIdAndVerificationDate(lockedPartyMember.getId(), today)) {
+            throw new CustomException(ErrorCode.PARTY_ALREADY_VERIFIED_TODAY);
+        }
+
         PartyVerification savedVerification = partyVerificationRepository.save(
                 PartyVerification.builder()
                         .party(party)
-                        .partyMember(partyMember)
+                        .partyMember(lockedPartyMember)
                         .imageUrl(imageUrl)
                         .verified(true)
                         .verificationDate(today)
@@ -364,6 +370,11 @@ public class PartyService {
         if (!partyMemberRepository.existsByMemberIdAndPartyId(memberId, partyId)) {
             throw new CustomException(ErrorCode.PARTY_MONTHLY_RANKING_FORBIDDEN);
         }
+    }
+
+    private PartyMember findPartyMember(Long memberId, Long partyId) {
+        return partyMemberRepository.findByMemberIdAndPartyId(memberId, partyId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PARTY_MEMBER_ONLY));
     }
 
     private PartyMember findPartyMemberForVerification(Long memberId, Long partyId) {
