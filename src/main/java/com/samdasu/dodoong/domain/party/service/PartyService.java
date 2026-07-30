@@ -9,16 +9,20 @@ import com.samdasu.dodoong.domain.party.dto.request.PartyRequestDto;
 import com.samdasu.dodoong.domain.party.dto.request.PartyUpdateRequestDto;
 import com.samdasu.dodoong.domain.party.dto.response.PartyListResponseDto;
 import com.samdasu.dodoong.domain.party.dto.response.PartyResponseDto;
+import com.samdasu.dodoong.domain.party.dto.response.PartyVerificationResponse;
 import com.samdasu.dodoong.domain.party.entity.Party;
 import com.samdasu.dodoong.domain.party.entity.PartyCategory;
 import com.samdasu.dodoong.domain.party.entity.PartyMember;
 import com.samdasu.dodoong.domain.party.entity.PartyRole;
+import com.samdasu.dodoong.domain.party.entity.PartyVerification;
 import com.samdasu.dodoong.domain.party.repository.PartyMemberRepository;
 import com.samdasu.dodoong.domain.party.repository.PartyRepository;
+import com.samdasu.dodoong.domain.party.repository.PartyVerificationRepository;
 import com.samdasu.dodoong.domain.quest.repository.DailyQuestRepository;
 import com.samdasu.dodoong.domain.quest.repository.projection.MonthlyPartyParticipationProjection;
 import com.samdasu.dodoong.global.exception.CustomException;
 import com.samdasu.dodoong.global.response.code.ErrorCode;
+import com.samdasu.dodoong.global.storage.FileStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -27,6 +31,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -49,7 +54,9 @@ public class PartyService {
     private final PartyMemberRepository partyMemberRepository;
     private final MemberRepository memberRepository;
     private final DailyQuestRepository dailyQuestRepository;
+    private final PartyVerificationRepository partyVerificationRepository;
     private final PasswordEncoder passwordEncoder;
+    private final FileStorage fileStorage;
 
     @Transactional
     public PartyResponseDto createParty(PartyRequestDto requestDto, Long memberId) {
@@ -182,6 +189,40 @@ public class PartyService {
         );
     }
 
+    @Transactional
+    public PartyVerificationResponse createPartyVerification(
+            Long memberId,
+            Long partyId,
+            MultipartFile image
+    ) {
+        validateVerificationImage(image);
+
+        Party party = findParty(partyId);
+        PartyMember partyMember = findPartyMemberForVerification(memberId, partyId);
+        LocalDate today = LocalDate.now(ZONE_KST);
+
+        if (partyVerificationRepository.existsByPartyMemberIdAndVerificationDate(partyMember.getId(), today)) {
+            throw new CustomException(ErrorCode.PARTY_ALREADY_VERIFIED_TODAY);
+        }
+
+        String imageUrl = fileStorage.upload(
+                image,
+                "party-verifications/" + partyId + "/" + memberId
+        );
+
+        PartyVerification savedVerification = partyVerificationRepository.save(
+                PartyVerification.builder()
+                        .party(party)
+                        .partyMember(partyMember)
+                        .imageUrl(imageUrl)
+                        .verified(true)
+                        .verificationDate(today)
+                        .build()
+        );
+
+        return PartyVerificationResponse.from(savedVerification);
+    }
+
     private void validateJoinEligibility(
             Long memberId,
             Party party,
@@ -215,6 +256,17 @@ public class PartyService {
     private void validatePartyMembership(Long memberId, Long partyId) {
         if (!partyMemberRepository.existsByMemberIdAndPartyId(memberId, partyId)) {
             throw new CustomException(ErrorCode.PARTY_MEMBER_ONLY);
+        }
+    }
+
+    private PartyMember findPartyMemberForVerification(Long memberId, Long partyId) {
+        return partyMemberRepository.findByMemberIdAndPartyIdForUpdate(memberId, partyId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PARTY_MEMBER_ONLY));
+    }
+
+    private void validateVerificationImage(MultipartFile image) {
+        if (image == null || image.isEmpty()) {
+            throw new CustomException(ErrorCode.PARTY_VERIFICATION_IMAGE_REQUIRED);
         }
     }
 

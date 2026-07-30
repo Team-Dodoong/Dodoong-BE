@@ -5,23 +5,30 @@ import com.samdasu.dodoong.domain.member.repository.MemberRepository;
 import com.samdasu.dodoong.domain.party.dto.request.PartyJoinRequest;
 import com.samdasu.dodoong.domain.party.dto.response.PartyJoinResponse;
 import com.samdasu.dodoong.domain.party.dto.response.PartyMonthlyMeResponse;
+import com.samdasu.dodoong.domain.party.dto.response.PartyVerificationResponse;
 import com.samdasu.dodoong.domain.party.entity.Party;
 import com.samdasu.dodoong.domain.party.entity.PartyMember;
 import com.samdasu.dodoong.domain.party.entity.PartyRole;
+import com.samdasu.dodoong.domain.party.entity.PartyVerification;
 import com.samdasu.dodoong.domain.party.repository.PartyMemberRepository;
 import com.samdasu.dodoong.domain.party.repository.PartyRepository;
+import com.samdasu.dodoong.domain.party.repository.PartyVerificationRepository;
 import com.samdasu.dodoong.domain.quest.repository.DailyQuestRepository;
 import com.samdasu.dodoong.domain.quest.repository.projection.MonthlyPartyParticipationProjection;
 import com.samdasu.dodoong.global.exception.CustomException;
 import com.samdasu.dodoong.global.response.code.ErrorCode;
+import com.samdasu.dodoong.global.storage.FileStorage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.List;
@@ -50,7 +57,13 @@ class PartyServiceTest {
     private DailyQuestRepository dailyQuestRepository;
 
     @Mock
+    private PartyVerificationRepository partyVerificationRepository;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private FileStorage fileStorage;
 
     @InjectMocks
     private PartyService partyService;
@@ -257,6 +270,86 @@ class PartyServiceTest {
                 .isEqualTo(ErrorCode.PARTY_MEMBER_ONLY);
     }
 
+    @Test
+    void createPartyVerification() {
+        Long memberId = 7L;
+        Long partyId = 3L;
+        Party party = createParty(partyId, "미라클 모닝", null, 10, true);
+        Member member = createMember(memberId, "dodoong", "은서");
+        PartyMember partyMember = createPartyMember(15L, member, party);
+        MockMultipartFile image = new MockMultipartFile(
+                "image",
+                "verification.jpg",
+                "image/jpeg",
+                "image-content".getBytes()
+        );
+        PartyVerification verification = PartyVerification.builder()
+                .party(party)
+                .partyMember(partyMember)
+                .imageUrl("https://example.com/verifications/24.jpg")
+                .verified(true)
+                .verificationDate(LocalDate.now(ZONE_KST))
+                .build();
+        ReflectionTestUtils.setField(verification, "id", 24L);
+        ReflectionTestUtils.setField(verification, "createdAt", LocalDateTime.of(2026, 7, 13, 23, 26, 41));
+
+        when(partyRepository.findById(partyId)).thenReturn(Optional.of(party));
+        when(partyMemberRepository.findByMemberIdAndPartyIdForUpdate(memberId, partyId))
+                .thenReturn(Optional.of(partyMember));
+        when(partyVerificationRepository.existsByPartyMemberIdAndVerificationDate(eq(15L), any(LocalDate.class)))
+                .thenReturn(false);
+        when(fileStorage.upload(image, "party-verifications/3/7"))
+                .thenReturn("https://example.com/verifications/24.jpg");
+        when(partyVerificationRepository.save(any(PartyVerification.class))).thenReturn(verification);
+
+        PartyVerificationResponse response = partyService.createPartyVerification(memberId, partyId, image);
+
+        assertThat(response.verificationId()).isEqualTo(24L);
+        assertThat(response.partyId()).isEqualTo(3L);
+        assertThat(response.partyMemberId()).isEqualTo(15L);
+        assertThat(response.memberId()).isEqualTo(7L);
+        assertThat(response.nickname()).isEqualTo("은서");
+        assertThat(response.imageUrl()).isEqualTo("https://example.com/verifications/24.jpg");
+        assertThat(response.verified()).isTrue();
+        assertThat(response.createdAt()).isEqualTo(LocalDateTime.of(2026, 7, 13, 23, 26, 41));
+    }
+
+    @Test
+    void createPartyVerificationThrowsWhenImageMissing() {
+        assertThatThrownBy(() -> partyService.createPartyVerification(7L, 3L, null))
+                .isInstanceOf(CustomException.class)
+                .extracting(exception -> ((CustomException) exception).getBaseCode())
+                .isEqualTo(ErrorCode.PARTY_VERIFICATION_IMAGE_REQUIRED);
+    }
+
+    @Test
+    void createPartyVerificationThrowsWhenAlreadyVerifiedToday() {
+        Long memberId = 7L;
+        Long partyId = 3L;
+        Party party = createParty(partyId, "미라클 모닝", null, 10, true);
+        Member member = createMember(memberId, "dodoong", "은서");
+        PartyMember partyMember = createPartyMember(15L, member, party);
+        MockMultipartFile image = new MockMultipartFile(
+                "image",
+                "verification.jpg",
+                "image/jpeg",
+                "image-content".getBytes()
+        );
+
+        when(partyRepository.findById(partyId)).thenReturn(Optional.of(party));
+        when(partyMemberRepository.findByMemberIdAndPartyIdForUpdate(memberId, partyId))
+                .thenReturn(Optional.of(partyMember));
+        when(partyVerificationRepository.existsByPartyMemberIdAndVerificationDate(eq(15L), any(LocalDate.class)))
+                .thenReturn(true);
+
+        assertThatThrownBy(() -> partyService.createPartyVerification(memberId, partyId, image))
+                .isInstanceOf(CustomException.class)
+                .extracting(exception -> ((CustomException) exception).getBaseCode())
+                .isEqualTo(ErrorCode.PARTY_ALREADY_VERIFIED_TODAY);
+
+        verify(fileStorage, never()).upload(any(), any());
+    }
+
     private Party createParty(
             Long partyId,
             String name,
@@ -276,12 +369,27 @@ class PartyServiceTest {
         return party;
     }
 
+    private PartyMember createPartyMember(Long partyMemberId, Member member, Party party) {
+        PartyMember partyMember = PartyMember.builder()
+                .role(PartyRole.MEMBER)
+                .member(member)
+                .party(party)
+                .build();
+        ReflectionTestUtils.setField(partyMember, "id", partyMemberId);
+        return partyMember;
+    }
+
     private Member createMember(Long memberId, String loginId) {
+        return createMember(memberId, loginId, null);
+    }
+
+    private Member createMember(Long memberId, String loginId, String nickname) {
         Member member = Member.builder()
                 .loginId(loginId)
                 .encodedPassword("encodedPassword")
                 .build();
         ReflectionTestUtils.setField(member, "id", memberId);
+        ReflectionTestUtils.setField(member, "nickname", nickname);
         return member;
     }
 

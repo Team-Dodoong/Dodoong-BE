@@ -5,6 +5,7 @@ import com.samdasu.dodoong.domain.party.dto.request.PartyRequestDto;
 import com.samdasu.dodoong.domain.party.dto.request.PartyUpdateRequestDto;
 import com.samdasu.dodoong.domain.party.dto.response.PartyListResponseDto;
 import com.samdasu.dodoong.domain.party.dto.response.PartyResponseDto;
+import com.samdasu.dodoong.domain.party.dto.response.PartyVerificationResponse;
 import com.samdasu.dodoong.domain.party.entity.PartyCategory;
 import com.samdasu.dodoong.domain.party.dto.request.PartyJoinRequest;
 import com.samdasu.dodoong.domain.party.dto.response.PartyJoinResponse;
@@ -13,12 +14,14 @@ import com.samdasu.dodoong.domain.party.service.PartyService;
 import com.samdasu.dodoong.global.response.dto.BaseResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -119,6 +122,25 @@ public class PartyController {
                 partyService.getMyMonthlyPartyStatus(
                         principal.memberId(),
                         partyId
+                );
+
+        return BaseResponse.ok(response);
+    }
+
+    @PostMapping(
+            value = "/{partyId}/verifications",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public BaseResponse<PartyVerificationResponse> createPartyVerification(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @PathVariable Long partyId,
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) {
+        PartyVerificationResponse response =
+                partyService.createPartyVerification(
+                        principal.memberId(),
+                        partyId,
+                        image
                 );
 
         return BaseResponse.ok(response);
