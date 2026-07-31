@@ -83,9 +83,16 @@ public enum ErrorCode implements BaseCode {
     PARTY_NOT_FOUND(HttpStatus.NOT_FOUND,"존재하지 않는 파티입니다."),
     PARTY_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND,"파티에 해당 회원이 존재하지 않습니다."),
 
+    // Chat
+    // 400 BAD REQUEST
+    INVALID_CHAT_DESTINATION(HttpStatus.BAD_REQUEST, "허용되지 않은 구독 경로입니다."),
+    // 404 NOT FOUND
+    CHAT_MESSAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 메시지입니다."),
+
     // S3
     // 400 BAD REQUEST
-    UNSUPPORTED_IMAGE_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 이미지 형식입니다.");
+    UNSUPPORTED_IMAGE_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 이미지 형식입니다."),
+    ;
 
     private final HttpStatus httpStatus;
     private final String message;
