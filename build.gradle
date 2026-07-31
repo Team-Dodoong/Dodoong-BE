@@ -54,6 +54,9 @@ dependencies {
 	// AWS SDK v2
 	implementation platform('software.amazon.awssdk:bom:2.49.5')
 	implementation 'software.amazon.awssdk:s3'
+
+	// WebSocket
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 }
 
 tasks.named('test') {
