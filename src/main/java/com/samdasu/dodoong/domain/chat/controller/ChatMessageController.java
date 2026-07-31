@@ -18,7 +18,7 @@ public class ChatMessageController {
 
     private final ChatService chatService;
 
-    @MessageMapping("/party/{partyId}/chat") // "/app/party/{partyId}/chat"
+    @MessageMapping("/parties/{partyId}/chat") // "/app/parties/{partyId}/chat"
     public void sendMessage(
             @DestinationVariable Long partyId,
             @Valid @Payload ChatMessageRequest request,
