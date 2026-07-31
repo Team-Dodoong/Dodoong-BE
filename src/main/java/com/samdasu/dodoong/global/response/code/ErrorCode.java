@@ -85,7 +85,8 @@ public enum ErrorCode implements BaseCode {
 
     // S3
     // 400 BAD REQUEST
-    UNSUPPORTED_IMAGE_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 이미지 형식입니다.");
+    UNSUPPORTED_IMAGE_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 이미지 형식입니다."),
+    INVALID_PROFILE_IMAGE_KEY(HttpStatus.BAD_REQUEST,"유효하지 않은 프로필 이미지 key입니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

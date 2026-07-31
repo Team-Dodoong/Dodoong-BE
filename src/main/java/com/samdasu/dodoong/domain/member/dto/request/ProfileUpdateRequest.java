@@ -11,6 +11,8 @@ public record ProfileUpdateRequest(
         String nickname,
 
         @Size(max = 255, message = "소개는 255자 이하여야 합니다.")
-        String introduction
+        String introduction,
+
+        String profileImageKey
 ) {
 }

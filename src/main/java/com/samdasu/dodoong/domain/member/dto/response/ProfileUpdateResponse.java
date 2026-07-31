@@ -8,10 +8,10 @@ public record ProfileUpdateResponse(
         String introduction
 ) {
 
-    public static ProfileUpdateResponse from(Member member) {
+    public static ProfileUpdateResponse of(Member member, String profileImageUrl) {
         return new ProfileUpdateResponse(
                 member.getNickname(),
-                member.getProfileImageUrl(),
+                profileImageUrl,
                 member.getIntroduction()
         );
     }

@@ -1,7 +1,5 @@
 package com.samdasu.dodoong.global.storage;
 
-import org.springframework.web.multipart.MultipartFile;
-
 public interface FileStorage {
 
     // 업로드용 presigned PUT url 발급
