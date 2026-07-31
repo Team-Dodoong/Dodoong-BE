@@ -1,6 +1,5 @@
 package com.samdasu.dodoong.domain.member.service;
 
-import com.samdasu.dodoong.domain.character.entity.MemberCharacter;
 import com.samdasu.dodoong.domain.character.repository.MemberCharacterRepository;
 import com.samdasu.dodoong.domain.member.dto.request.ProfileImageUploadRequest;
 import com.samdasu.dodoong.domain.member.dto.response.LevelUpResponse;
@@ -15,10 +14,11 @@ import com.samdasu.dodoong.global.response.code.ErrorCode;
 import com.samdasu.dodoong.global.storage.FileStorage;
 import com.samdasu.dodoong.global.storage.PresignedUpload;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -57,7 +57,11 @@ public class MemberService {
 
         //새로운 이미지로 변경한 경우 기존 S3 객체 삭제
         if (isProfileImageChanged(previousProfileImageKey, request.profileImageKey())) {
-            fileStorage.delete(previousProfileImageKey);
+            try {
+                fileStorage.delete(previousProfileImageKey);
+            } catch (RuntimeException e) {
+                log.warn("이전 프로필 이미지 삭제 실패: key={}", previousProfileImageKey, e);
+            }
         }
 
         String profileImageUrl = createProfileImageUrl(member.getProfileImageKey());

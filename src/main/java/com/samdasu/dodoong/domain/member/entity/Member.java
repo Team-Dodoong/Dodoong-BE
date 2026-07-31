@@ -54,7 +54,7 @@ public class Member extends BaseTimeEntity {
             this.nickname = nickname;
         }
 
-        if (profileImageKey != null) {
+        if (profileImageKey != null && !profileImageKey.isBlank()) {
             this.profileImageKey = profileImageKey;
         }
 
