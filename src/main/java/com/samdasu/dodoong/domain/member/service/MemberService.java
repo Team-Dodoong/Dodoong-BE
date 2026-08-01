@@ -9,9 +9,11 @@ import com.samdasu.dodoong.domain.member.dto.response.ProfileImageUploadResponse
 import com.samdasu.dodoong.domain.member.dto.response.ProfileUpdateResponse;
 import com.samdasu.dodoong.domain.member.entity.Member;
 import com.samdasu.dodoong.domain.member.repository.MemberRepository;
+import com.samdasu.dodoong.domain.party.entity.Party;
 import com.samdasu.dodoong.domain.party.entity.PartyMember;
 import com.samdasu.dodoong.domain.party.entity.PartyRole;
 import com.samdasu.dodoong.domain.party.repository.PartyMemberRepository;
+import com.samdasu.dodoong.domain.party.repository.PartyRepository;
 import com.samdasu.dodoong.domain.quest.repository.DailyQuestRepository;
 import com.samdasu.dodoong.domain.routine.repository.RoutineRepository;
 import com.samdasu.dodoong.domain.streak.repository.StreakRepository;
@@ -41,6 +43,7 @@ public class MemberService {
     private final DailyQuestRepository dailyQuestRepository;
     private final RoutineRepository routineRepository;
     private final StreakRepository streakRepository;
+    private final PartyRepository partyRepository;
 
     public MemberResponse getMyInfo(Long memberId) {
         Member member = findMember(memberId);
@@ -199,7 +202,10 @@ public class MemberService {
         List<PartyMember> joinedPartyMembers = partyMemberRepository.findAllByMemberIdAndRole(memberId, PartyRole.MEMBER);
 
         for (PartyMember partyMember : joinedPartyMembers) {
-            partyMember.getParty().decreaseCurrentMembers();
+            Party party = partyRepository.findByIdForUpdate(partyMember.getParty().getId())
+                    .orElseThrow(() -> new CustomException(ErrorCode.PARTY_NOT_FOUND));
+
+            party.decreaseCurrentMembers();
         }
 
         partyMemberRepository.deleteAll(joinedPartyMembers);
