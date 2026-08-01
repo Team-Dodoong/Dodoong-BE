@@ -4,6 +4,7 @@ import com.samdasu.dodoong.domain.chat.dto.request.ChatMessageRequest;
 import com.samdasu.dodoong.domain.chat.dto.response.ChatHistoryResponse;
 import com.samdasu.dodoong.domain.chat.dto.response.ChatMessageHistoryResponse;
 import com.samdasu.dodoong.domain.chat.dto.response.ChatMessageResponse;
+import com.samdasu.dodoong.domain.chat.dto.response.ChatRoomResponse;
 import com.samdasu.dodoong.domain.chat.entity.ChatMessage;
 import com.samdasu.dodoong.domain.chat.repository.ChatMessageRepository;
 import com.samdasu.dodoong.domain.member.entity.Member;
@@ -11,6 +12,7 @@ import com.samdasu.dodoong.domain.member.repository.MemberRepository;
 import com.samdasu.dodoong.domain.party.entity.Party;
 import com.samdasu.dodoong.domain.party.repository.PartyMemberRepository;
 import com.samdasu.dodoong.domain.party.repository.PartyRepository;
+import com.samdasu.dodoong.domain.party.repository.projection.PartyMemberCountProjection;
 import com.samdasu.dodoong.global.exception.CustomException;
 import com.samdasu.dodoong.global.response.code.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +23,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ChatService {
 
     private final ChatMessageRepository chatMessageRepository;
@@ -54,7 +59,6 @@ public class ChatService {
         chatMessagePublisher.broadcastToParty(partyId, ChatMessageResponse.from(saved));
     }
 
-    @Transactional(readOnly = true)
     public ChatHistoryResponse getChatHistory(Long partyId, Long memberId, Long cursor, int size) {
         if (!partyMemberRepository.existsByMemberIdAndPartyId(memberId, partyId)) {
             throw new CustomException(ErrorCode.PARTY_MEMBER_ONLY);
@@ -77,5 +81,41 @@ public class ChatService {
                 .toList();
 
         return new ChatHistoryResponse(messages, slice.hasNext(), nextCursor);
+    }
+
+    public List<ChatRoomResponse> getMyChatRooms(Long memberId) {
+        List<Party> myParties = partyRepository.findAllMyParties(memberId);
+        if (myParties.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> partyIds = myParties.stream()
+                .map(Party::getId)
+                .toList();
+
+        Map<Long, Long> memberCountMap = partyMemberRepository.countByPartyIds(partyIds).stream()
+                .collect(Collectors.toMap(
+                        PartyMemberCountProjection::getPartyId,
+                        PartyMemberCountProjection::getMemberCount
+                ));
+
+        Map<Long, ChatMessage> lastMessageMap =
+                chatMessageRepository.findLatestMessagesByPartyIds(partyIds).stream()
+                        .collect(Collectors.toMap(
+                                message -> message.getParty().getId(),
+                                message -> message
+                        ));
+
+        return myParties.stream()
+                .map(party -> ChatRoomResponse.of(
+                        party,
+                        memberCountMap.getOrDefault(party.getId(), 0L).intValue(),
+                        lastMessageMap.get(party.getId())
+                ))
+                .sorted(Comparator.comparing(
+                        ChatRoomResponse::lastMessageAt,
+                        Comparator.nullsLast(Comparator.reverseOrder())
+                ))
+                .toList();
     }
 }
