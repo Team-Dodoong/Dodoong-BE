@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ChatMessagePublisher {
 
-    private static final String PARTY_TOPIC_PREFIX = "/topic/party/";
+    private static final String PARTY_TOPIC_PREFIX = "/topic/parties/";
 
     private final SimpMessagingTemplate messagingTemplate;
 
