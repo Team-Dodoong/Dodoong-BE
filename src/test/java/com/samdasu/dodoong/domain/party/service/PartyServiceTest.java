@@ -201,7 +201,7 @@ class PartyServiceTest {
                 .party(party)
                 .build();
 
-        when(partyRepository.findById(partyId)).thenReturn(Optional.of(party));
+        when(partyRepository.findByIdForUpdate(partyId)).thenReturn(Optional.of(party));
         when(partyMemberRepository.findByMemberIdAndPartyId(memberId, partyId))
                 .thenReturn(Optional.of(partyMember));
 
