@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface PartyRepository extends JpaRepository<Party, Long>, PartyRepositoryCustom {
@@ -18,6 +19,11 @@ public interface PartyRepository extends JpaRepository<Party, Long>, PartyReposi
     @Query("SELECT p FROM Party p WHERE p.id IN " +
             "(SELECT pm.party.id FROM PartyMember pm WHERE pm.member.id = :memberId)")
     Page<Party> findMyParties(@Param("memberId") Long memberId, Pageable pageable);
+
+    // 내가 속한 파티 목록 조회 (페이징 X)
+    @Query("SELECT p FROM Party p WHERE p.id IN " +
+            "(SELECT pm.party.id FROM PartyMember pm WHERE pm.member.id = :memberId)")
+    List<Party> findAllMyParties(@Param("memberId") Long memberId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({
