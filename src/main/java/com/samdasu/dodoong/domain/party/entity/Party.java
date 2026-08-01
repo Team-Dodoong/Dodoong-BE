@@ -85,6 +85,7 @@ public class Party extends BaseTimeEntity {
         this.isPublic = dto.isPublic();
         this.partyPassword = dto.isPublic() ? null : encodedPassword;
         this.imageUrl = dto.imageUrl();
+        updateRecruitingStatus();
     }
 
     //파티 현재 인원 증가(가입)
@@ -95,9 +96,7 @@ public class Party extends BaseTimeEntity {
 
         this.currentMembers++;
 
-        if (this.currentMembers == this.maxMembers) {
-            this.isRecruiting = false;
-        }
+        updateRecruitingStatus();
     }
 
     //파티 현재 인원 감소(탈퇴), 최소 파티장 1명 존재
@@ -106,8 +105,11 @@ public class Party extends BaseTimeEntity {
             this.currentMembers--;
         }
 
-        if (this.currentMembers < this.maxMembers) {
-            this.isRecruiting = true;
-        }
+        updateRecruitingStatus();
+    }
+
+    //현재 인원과 최대 인원 기준으로 모집 상태 갱신(정원 도달 시 마감, 빈 자리 발생 시 모집 중)
+    private void updateRecruitingStatus() {
+        this.isRecruiting = this.currentMembers < this.maxMembers;
     }
 }
