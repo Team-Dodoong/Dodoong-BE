@@ -86,4 +86,28 @@ public class Party extends BaseTimeEntity {
         this.partyPassword = dto.isPublic() ? null : encodedPassword;
         this.imageUrl = dto.imageUrl();
     }
+
+    //파티 현재 인원 증가(가입)
+    public void increaseCurrentMembers() {
+        if (this.currentMembers >= this.maxMembers) {
+            throw new CustomException(ErrorCode.PARTY_FULL);
+        }
+
+        this.currentMembers++;
+
+        if (this.currentMembers == this.maxMembers) {
+            this.isRecruiting = false;
+        }
+    }
+
+    //파티 현재 인원 감소(탈퇴), 최소 파티장 1명 존재
+    public void decreaseCurrentMembers() {
+        if (this.currentMembers > 1) {
+            this.currentMembers--;
+        }
+
+        if (this.currentMembers < this.maxMembers) {
+            this.isRecruiting = true;
+        }
+    }
 }

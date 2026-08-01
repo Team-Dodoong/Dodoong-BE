@@ -190,4 +190,7 @@ public interface DailyQuestRepository extends JpaRepository<DailyQuest, Long> {
         AND dq.isChecked = true
     """)
     int detachCheckedByRoutineId(@Param("routineId") Long routineId);
+
+    // 회원 탈퇴 시 회원의 일일 퀘스트 전체 삭제
+    void deleteAllByMemberId(Long memberId);
 }
