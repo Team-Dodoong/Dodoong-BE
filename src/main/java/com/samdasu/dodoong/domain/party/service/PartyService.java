@@ -137,17 +137,25 @@ public class PartyService {
                         .build()
         );
 
+        party.increaseCurrentMembers();
+
         return PartyJoinResponse.from(savedPartyMember);
     }
 
     @Transactional
     public void leaveParty(Long memberId, Long partyId) {
-        findParty(partyId);
+        Party party = findPartyForUpdate(partyId);
 
         PartyMember partyMember = partyMemberRepository.findByMemberIdAndPartyId(memberId, partyId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_JOINED_PARTY));
 
+        //파티장은 파티 탈퇴 불가(deleteParty만 가능)
+        if (partyMember.getRole() == PartyRole.LEADER) {
+            throw new CustomException(ErrorCode.PARTY_LEADER_CANNOT_LEAVE);
+        }
+
         partyMemberRepository.delete(partyMember);
+        party.decreaseCurrentMembers();
     }
 
     public PartyMonthlyMeResponse getMyMonthlyPartyStatus(
@@ -257,10 +265,15 @@ public class PartyService {
         Map<Long, PartyVerification> verificationMap = findVerificationMap(pagePartyMembers, today);
 
         List<PartyVerificationHistoryItemResponse> verifications = pagePartyMembers.stream()
-                .map(partyMember -> PartyVerificationHistoryItemResponse.of(
-                        partyMember,
-                        verificationMap.get(partyMember.getId())
-                ))
+                .map(partyMember -> {
+                    String profileImageUrl = createProfileImageUrl(partyMember.getMember().getProfileImageKey());
+
+                    return PartyVerificationHistoryItemResponse.of(
+                            partyMember,
+                            verificationMap.get(partyMember.getId()),
+                            profileImageUrl
+                    );
+                })
                 .toList();
 
         Long nextCursor = verifications.isEmpty()
@@ -437,11 +450,16 @@ public class PartyService {
                 previousScore = stat.verificationCount();
             }
 
+            String profileImageUrl = createProfileImageUrl(
+                    stat.partyMember().getMember().getProfileImageKey()
+            );
+
             rankings.add(
                     PartyMonthlyRankingItemResponse.of(
                             currentRank,
                             stat.partyMember(),
-                            stat.verificationCount()
+                            stat.verificationCount(),
+                            profileImageUrl
                     )
             );
         }
@@ -528,5 +546,13 @@ public class PartyService {
             PartyMember partyMember,
             long verificationCount
     ) {
+    }
+
+    private String createProfileImageUrl(String profileImageKey) {
+        if (profileImageKey == null || profileImageKey.isBlank()) {
+            return null;
+        }
+
+        return fileStorage.toPublicUrl(profileImageKey);
     }
 }

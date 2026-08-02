@@ -17,7 +17,8 @@ public record PartyVerificationHistoryItemResponse(
 ) {
     public static PartyVerificationHistoryItemResponse of(
             PartyMember partyMember,
-            PartyVerification verification
+            PartyVerification verification,
+            String profileImageUrl
     ) {
         boolean verified = verification != null;
 
@@ -25,7 +26,7 @@ public record PartyVerificationHistoryItemResponse(
                 partyMember.getId(),
                 partyMember.getMember().getId(),
                 partyMember.getMember().getNickname(),
-                partyMember.getMember().getProfileImageUrl(),
+                profileImageUrl,
                 verified,
                 verified ? verification.getId() : null,
                 verified ? verification.getImageUrl() : null,
