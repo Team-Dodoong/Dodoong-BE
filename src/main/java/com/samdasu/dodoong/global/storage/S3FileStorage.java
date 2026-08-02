@@ -13,7 +13,9 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
+import software.amazon.awssdk.core.sync.RequestBody;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
 
@@ -30,6 +32,29 @@ public class S3FileStorage implements FileStorage {
             "image/png",  ".png",
             "image/webp", ".webp"
     );
+
+    @Override
+    public String upload(MultipartFile file, String directory) {
+        String contentType = file.getContentType();
+        String key = buildKey(directory, resolveExtension(contentType));
+
+        PutObjectRequest objectRequest = PutObjectRequest.builder()
+                .bucket(props.bucket())
+                .key(key)
+                .contentType(contentType)
+                .build();
+
+        try {
+            s3Client.putObject(
+                    objectRequest,
+                    RequestBody.fromInputStream(file.getInputStream(), file.getSize())
+            );
+        } catch (IOException | RuntimeException e) {
+            throw new CustomException(ErrorCode.FILE_UPLOAD_FAILED);
+        }
+
+        return toPublicUrl(key);
+    }
 
     @Override
     public PresignedUpload createUploadUrl(String directory, String contentType) {

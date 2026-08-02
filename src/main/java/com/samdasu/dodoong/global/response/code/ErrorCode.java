@@ -76,20 +76,26 @@ public enum ErrorCode implements BaseCode {
     PARTY_FULL(HttpStatus.BAD_REQUEST, "파티 정원이 가득 찼습니다."),
     PARTY_RECRUITMENT_CLOSED(HttpStatus.BAD_REQUEST, "모집이 마감된 파티입니다."),
     NOT_JOINED_PARTY(HttpStatus.BAD_REQUEST, "가입하지 않은 파티입니다."),
+    PARTY_VERIFICATION_IMAGE_REQUIRED(HttpStatus.BAD_REQUEST, "인증 이미지가 필요합니다."),
     // 403 FORBIDDEN
     FORBIDDEN_UPDATE_PARTY(HttpStatus.FORBIDDEN, "파티 수정 권한이 없습니다."),
     PARTY_MEMBER_ONLY(HttpStatus.FORBIDDEN, "해당 파티에 가입한 회원만 조회할 수 있습니다."),
     PARTY_LEADER_CANNOT_LEAVE(HttpStatus.FORBIDDEN, "파티장은 파티를 탈퇴할 수 없습니다. 파티를 삭제해주세요."),
+    PARTY_VERIFICATION_HISTORY_FORBIDDEN(HttpStatus.FORBIDDEN, "해당 파티에 가입한 회원만 인증 기록을 조회할 수 있습니다."),
+    PARTY_MONTHLY_RANKING_FORBIDDEN(HttpStatus.FORBIDDEN, "해당 파티에 가입한 회원만 랭킹을 조회할 수 있습니다."),
     // 404 NOT FOUND
     PARTY_NOT_FOUND(HttpStatus.NOT_FOUND,"존재하지 않는 파티입니다."),
     PARTY_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND,"파티에 해당 회원이 존재하지 않습니다."),
     // 409 CONFLICT
     PARTY_LEADER_CANNOT_WITHDRAW(HttpStatus.CONFLICT, "파티장으로 참여 중인 파티가 있습니다. 해당 파티를 삭제한 후 회원 탈퇴를 진행해주세요."),
+    PARTY_ALREADY_VERIFIED_TODAY(HttpStatus.CONFLICT, "오늘 이미 인증을 완료했습니다."),
 
     // S3
     // 400 BAD REQUEST
     UNSUPPORTED_IMAGE_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 이미지 형식입니다."),
-    INVALID_PROFILE_IMAGE_KEY(HttpStatus.BAD_REQUEST,"유효하지 않은 프로필 이미지 key입니다.");
+    INVALID_PROFILE_IMAGE_KEY(HttpStatus.BAD_REQUEST,"유효하지 않은 프로필 이미지 key입니다."),
+    // 500 INTERNAL SERVER ERROR
+    FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
