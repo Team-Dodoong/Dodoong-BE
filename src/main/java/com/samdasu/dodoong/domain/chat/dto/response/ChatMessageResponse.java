@@ -22,7 +22,7 @@ public record ChatMessageResponse(
                 message.getParty().getId(),
                 sender.getId(),
                 sender.getNickname(),
-                sender.getProfileImageUrl(),
+                sender.getProfileImageKey(),
                 message.getContent(),
                 message.getCreatedAt()
         );

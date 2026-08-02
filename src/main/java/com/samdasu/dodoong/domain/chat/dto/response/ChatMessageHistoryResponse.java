@@ -20,7 +20,7 @@ public record ChatMessageHistoryResponse(
                 message.getId(),
                 sender.getId(),
                 sender.getNickname(),
-                sender.getProfileImageUrl(),
+                sender.getProfileImageKey(),
                 message.getContent(),
                 sender.getId().equals(viewerId), // 내 메시지 여부 판단
                 message.getCreatedAt()
