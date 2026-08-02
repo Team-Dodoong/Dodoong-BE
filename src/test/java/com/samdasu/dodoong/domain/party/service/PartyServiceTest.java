@@ -283,7 +283,7 @@ class PartyServiceTest {
 
         PartyMember partyMember1 = createPartyMember(
                 15L,
-                createMember(7L, "eunseo", "은서", "https://example.com/profiles/7.jpg"),
+                createMember(7L, "eunseo", "은서",  "profiles/7/profile.jpg"),
                 party
         );
         PartyMember partyMember2 = createPartyMember(
@@ -293,7 +293,7 @@ class PartyServiceTest {
         );
         PartyMember partyMember3 = createPartyMember(
                 17L,
-                createMember(9L, "yunsu", "윤수", "https://example.com/profiles/9.jpg"),
+                createMember(9L, "yunsu", "윤수",  "profiles/9/profile.jpg"),
                 party
         );
         PartyMember partyMember4 = createPartyMember(
@@ -306,6 +306,10 @@ class PartyServiceTest {
         when(partyMemberRepository.existsByMemberIdAndPartyId(memberId, partyId)).thenReturn(true);
         when(partyMemberRepository.findAllByPartyIdWithMember(partyId))
                 .thenReturn(List.of(partyMember1, partyMember2, partyMember3, partyMember4));
+        when(fileStorage.toPublicUrl("profiles/7/profile.jpg"))
+                .thenReturn("https://example.com/profiles/7.jpg");
+        when(fileStorage.toPublicUrl("profiles/9/profile.jpg"))
+                .thenReturn("https://example.com/profiles/9.jpg");
         when(partyVerificationRepository.countMonthlyVerificationCounts(eq(partyId), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(List.of(
                         new TestMonthlyPartyVerificationCountProjection(7L, 12L),
@@ -358,10 +362,10 @@ class PartyServiceTest {
         LocalDate today = LocalDate.now(ZONE_KST);
         Party party = createParty(partyId, "미라클 모닝", null, 10, true);
 
-        Member member1 = createMember(7L, "dodoong", "은서", "https://example.com/profiles/7.jpg");
+        Member member1 = createMember(7L, "dodoong", "은서",  "profiles/7/profile.jpg");
         Member member2 = createMember(8L, "minji", "민지", null);
-        Member member3 = createMember(9L, "yunsu", "윤수", "https://example.com/profiles/9.jpg");
-        Member member4 = createMember(10L, "jiho", "지호", "https://example.com/profiles/10.jpg");
+        Member member3 = createMember(9L, "yunsu", "윤수",  "profiles/9/profile.jpg");
+        Member member4 = createMember(10L, "jiho", "지호",  "profiles/10/profile.jpg");
 
         PartyMember partyMember1 = createPartyMember(15L, member1, party);
         PartyMember partyMember2 = createPartyMember(16L, member2, party);
@@ -389,6 +393,10 @@ class PartyServiceTest {
         when(partyMemberRepository.existsByMemberIdAndPartyId(memberId, partyId)).thenReturn(true);
         when(partyMemberRepository.findVerificationPageByPartyId(eq(partyId), isNull(), any()))
                 .thenReturn(List.of(partyMember1, partyMember2, partyMember3, partyMember4));
+        when(fileStorage.toPublicUrl("profiles/7/profile.jpg"))
+                .thenReturn("https://example.com/profiles/7.jpg");
+        when(fileStorage.toPublicUrl("profiles/9/profile.jpg"))
+                .thenReturn("https://example.com/profiles/9.jpg");
         when(partyVerificationRepository.findByPartyMemberIdsAndVerificationDate(List.of(15L, 16L, 17L), today))
                 .thenReturn(List.of(verification1, verification2));
         when(partyMemberRepository.countByPartyId(partyId)).thenReturn(4L);
@@ -582,7 +590,7 @@ class PartyServiceTest {
             Long memberId,
             String loginId,
             String nickname,
-            String profileImageUrl
+            String profileImageKey
     ) {
         Member member = Member.builder()
                 .loginId(loginId)
@@ -590,7 +598,7 @@ class PartyServiceTest {
                 .build();
         ReflectionTestUtils.setField(member, "id", memberId);
         ReflectionTestUtils.setField(member, "nickname", nickname);
-        ReflectionTestUtils.setField(member, "profileImageUrl", profileImageUrl);
+        ReflectionTestUtils.setField(member, "profileImageKey", profileImageKey);
         return member;
     }
 

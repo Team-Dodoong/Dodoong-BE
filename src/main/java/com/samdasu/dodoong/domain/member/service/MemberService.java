@@ -1,70 +1,72 @@
 package com.samdasu.dodoong.domain.member.service;
 
-import com.samdasu.dodoong.domain.character.entity.MemberCharacter;
 import com.samdasu.dodoong.domain.character.repository.MemberCharacterRepository;
+import com.samdasu.dodoong.domain.member.dto.request.ProfileImageUploadRequest;
 import com.samdasu.dodoong.domain.member.dto.response.LevelUpResponse;
 import com.samdasu.dodoong.domain.member.dto.response.MemberResponse;
 import com.samdasu.dodoong.domain.member.dto.request.ProfileUpdateRequest;
+import com.samdasu.dodoong.domain.member.dto.response.ProfileImageUploadResponse;
 import com.samdasu.dodoong.domain.member.dto.response.ProfileUpdateResponse;
 import com.samdasu.dodoong.domain.member.entity.Member;
 import com.samdasu.dodoong.domain.member.repository.MemberRepository;
 import com.samdasu.dodoong.global.exception.CustomException;
 import com.samdasu.dodoong.global.response.code.ErrorCode;
+import com.samdasu.dodoong.global.storage.FileStorage;
+import com.samdasu.dodoong.global.storage.PresignedUpload;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class MemberService {
 
+    private static final String PROFILE_IMAGE_DIRECTORY = "profiles";
+
     private final MemberRepository memberRepository;
     private final MemberCharacterRepository memberCharacterRepository;
+    private final FileStorage fileStorage;
 
     public MemberResponse getMyInfo(Long memberId) {
         Member member = findMember(memberId);
 
-        return MemberResponse.from(member);
+        String profileImageUrl = createProfileImageUrl(member.getProfileImageKey());
+
+        return MemberResponse.of(member, profileImageUrl);
     }
 
+    //닉네임, 소개, 프로필 이미지 key 최종 저장
     @Transactional
-    public ProfileUpdateResponse updateProfile(
-            Long memberId,
-            ProfileUpdateRequest request,
-            MultipartFile profileImage
-    ) {
+    public ProfileUpdateResponse updateProfile(Long memberId, ProfileUpdateRequest request) {
         Member member = findMember(memberId);
 
-        String nickname = null;
-        String introduction = null;
+        validateDuplicateNickname(memberId, request.nickname());
 
-        if (request != null) {
-            nickname = request.nickname();
-            introduction = request.introduction();
-        }
+        validateProfileImageKey(memberId, request.profileImageKey());
 
-        validateDuplicateNickname(memberId, nickname);
-
-        String profileImageUrl = null;
-
-        if (profileImage != null && !profileImage.isEmpty()) {
-            // TODO: S3 연결 후
-            throw new CustomException(
-                    ErrorCode.PROFILE_IMAGE_UPLOAD_NOT_SUPPORTED
-            );
-
-            // profileImageUrl = fileStorage.upload(profileImage);
-        }
+        String previousProfileImageKey = member.getProfileImageKey();
 
         member.updateProfile(
-                nickname,
-                profileImageUrl,
-                introduction
+                request.nickname(),
+                request.profileImageKey(),
+                request.introduction()
         );
 
-        return ProfileUpdateResponse.from(member);
+        //새로운 이미지로 변경한 경우 기존 S3 객체 삭제
+        if (isProfileImageChanged(previousProfileImageKey, request.profileImageKey())) {
+            try {
+                fileStorage.delete(previousProfileImageKey);
+            } catch (RuntimeException e) {
+                log.warn("이전 프로필 이미지 삭제 실패: key={}", previousProfileImageKey, e);
+            }
+        }
+
+        String profileImageUrl = createProfileImageUrl(member.getProfileImageKey());
+
+        return ProfileUpdateResponse.of(member, profileImageUrl);
     }
 
     //회원 탈퇴
@@ -116,5 +118,50 @@ public class MemberService {
                     ErrorCode.DUPLICATE_NICKNAME
             );
         }
+    }
+
+    //프로필 이미지 업로드용 Presigned URL 발급
+    public ProfileImageUploadResponse createProfileImageUploadUrl(Long memberId, ProfileImageUploadRequest request) {
+        findMember(memberId);
+        String directory = PROFILE_IMAGE_DIRECTORY + "/" + memberId;
+
+        PresignedUpload presignedUpload = fileStorage.createUploadUrl(directory, request.contentType());
+
+        return ProfileImageUploadResponse.from(presignedUpload);
+    }
+
+    private void validateProfileImageKey(Long memberId, String profileImageKey) {
+        // 사진을 변경하지 않은 경우
+        if (profileImageKey == null || profileImageKey.isBlank()) {
+            return;
+        }
+
+        String expectedPrefix = PROFILE_IMAGE_DIRECTORY + "/" + memberId + "/";
+
+        if (!profileImageKey.startsWith(expectedPrefix)) {
+            throw new CustomException(ErrorCode.INVALID_PROFILE_IMAGE_KEY);
+        }
+    }
+
+    private boolean isProfileImageChanged(String previousProfileImageKey, String newProfileImageKey) {
+        return previousProfileImageKey != null
+                && !previousProfileImageKey.isBlank()
+                && newProfileImageKey != null
+                && !newProfileImageKey.isBlank()
+                && !previousProfileImageKey.equals(
+                newProfileImageKey
+        );
+    }
+
+    private String createProfileImageUrl(
+            String profileImageKey
+    ) {
+        if (profileImageKey == null || profileImageKey.isBlank()) {
+            return null;
+        }
+
+        return fileStorage.toPublicUrl(
+                profileImageKey
+        );
     }
 }

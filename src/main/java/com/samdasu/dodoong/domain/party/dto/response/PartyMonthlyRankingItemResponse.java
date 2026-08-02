@@ -13,13 +13,14 @@ public record PartyMonthlyRankingItemResponse(
     public static PartyMonthlyRankingItemResponse of(
             int rank,
             PartyMember partyMember,
-            long verificationCount
+            long verificationCount,
+            String profileImageUrl
     ) {
         return new PartyMonthlyRankingItemResponse(
                 rank,
                 partyMember.getMember().getId(),
                 partyMember.getMember().getNickname(),
-                partyMember.getMember().getProfileImageUrl(),
+                profileImageUrl,
                 verificationCount,
                 verificationCount
         );

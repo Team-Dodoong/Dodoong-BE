@@ -28,7 +28,7 @@ public class Member extends BaseTimeEntity {
     private String nickname;
 
     @Column
-    private String profileImageUrl;
+    private String profileImageKey;
 
     @Column(length = 255)
     private String introduction;
@@ -49,19 +49,20 @@ public class Member extends BaseTimeEntity {
         this.password = encodedPassword;
     }
 
-    public void updateProfile(String nickname, String profileImageUrl, String introduction) {
+    public void updateProfile(String nickname, String profileImageKey, String introduction) {
         if (nickname != null) {
             this.nickname = nickname;
         }
 
-        if (profileImageUrl != null) {
-            this.profileImageUrl = profileImageUrl;
+        if (profileImageKey != null && !profileImageKey.isBlank()) {
+            this.profileImageKey = profileImageKey;
         }
 
         if (introduction != null) {
             this.introduction = introduction;
         }
     }
+
     public void addExperience(int amount) {
         this.experience += amount;
     }
