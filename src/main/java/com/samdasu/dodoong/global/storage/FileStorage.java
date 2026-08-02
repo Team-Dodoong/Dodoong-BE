@@ -1,5 +1,7 @@
 package com.samdasu.dodoong.global.storage;
 
+import org.springframework.web.multipart.MultipartFile;
+
 public interface FileStorage {
 
     // 서버를 경유해 파일 업로드 후 공개 URL 반환
