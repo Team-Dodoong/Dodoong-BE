@@ -26,4 +26,7 @@ public interface RoutineRepository extends JpaRepository<Routine, Long> {
                                                   @Param("date") LocalDate date);
 
     Optional<Routine> findByIdAndMemberId(Long id, Long memberId);
+
+    // 회원 탈퇴 시 회원의 루틴 전체 삭제
+    void deleteAllByMemberId(Long memberId);
 }

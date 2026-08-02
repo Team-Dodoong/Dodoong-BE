@@ -13,12 +13,12 @@ public record MemberResponse(
         int coin
 ) {
 
-    public static MemberResponse from(Member member) {
+    public static MemberResponse of(Member member, String profileImageUrl) {
         return new MemberResponse(
                 member.getId(),
                 member.getLoginId(),
                 member.getNickname(),
-                member.getProfileImageUrl(),
+                profileImageUrl,
                 member.getIntroduction(),
                 member.getLevel(),
                 member.getExperience(),
