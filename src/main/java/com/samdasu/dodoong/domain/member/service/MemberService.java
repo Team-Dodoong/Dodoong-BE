@@ -25,6 +25,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 
@@ -70,13 +72,19 @@ public class MemberService {
                 request.introduction()
         );
 
-        //새로운 이미지로 변경한 경우 기존 S3 객체 삭제
+        // 새로운 이미지로 변경한 경우, 트랜잭션 커밋 후 기존 S3 객체 삭제
         if (isProfileImageChanged(previousProfileImageKey, request.profileImageKey())) {
-            try {
-                fileStorage.delete(previousProfileImageKey);
-            } catch (RuntimeException e) {
-                log.warn("이전 프로필 이미지 삭제 실패: key={}", previousProfileImageKey, e);
-            }
+            TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        try {
+                            fileStorage.delete(previousProfileImageKey);
+                        } catch (RuntimeException e) {
+                            log.warn("이전 프로필 이미지 삭제 실패: key={}", previousProfileImageKey, e);
+                        }
+                    }
+                });
         }
 
         String profileImageUrl = createProfileImageUrl(member.getProfileImageKey());
