@@ -9,6 +9,14 @@ import com.samdasu.dodoong.domain.member.dto.response.ProfileImageUploadResponse
 import com.samdasu.dodoong.domain.member.dto.response.ProfileUpdateResponse;
 import com.samdasu.dodoong.domain.member.entity.Member;
 import com.samdasu.dodoong.domain.member.repository.MemberRepository;
+import com.samdasu.dodoong.domain.party.entity.Party;
+import com.samdasu.dodoong.domain.party.entity.PartyMember;
+import com.samdasu.dodoong.domain.party.entity.PartyRole;
+import com.samdasu.dodoong.domain.party.repository.PartyMemberRepository;
+import com.samdasu.dodoong.domain.party.repository.PartyRepository;
+import com.samdasu.dodoong.domain.quest.repository.DailyQuestRepository;
+import com.samdasu.dodoong.domain.routine.repository.RoutineRepository;
+import com.samdasu.dodoong.domain.streak.repository.StreakRepository;
 import com.samdasu.dodoong.global.exception.CustomException;
 import com.samdasu.dodoong.global.response.code.ErrorCode;
 import com.samdasu.dodoong.global.storage.FileStorage;
@@ -17,6 +25,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -29,6 +41,11 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final MemberCharacterRepository memberCharacterRepository;
     private final FileStorage fileStorage;
+    private final PartyMemberRepository partyMemberRepository;
+    private final DailyQuestRepository dailyQuestRepository;
+    private final RoutineRepository routineRepository;
+    private final StreakRepository streakRepository;
+    private final PartyRepository partyRepository;
 
     public MemberResponse getMyInfo(Long memberId) {
         Member member = findMember(memberId);
@@ -55,13 +72,19 @@ public class MemberService {
                 request.introduction()
         );
 
-        //새로운 이미지로 변경한 경우 기존 S3 객체 삭제
+        // 새로운 이미지로 변경한 경우, 트랜잭션 커밋 후 기존 S3 객체 삭제
         if (isProfileImageChanged(previousProfileImageKey, request.profileImageKey())) {
-            try {
-                fileStorage.delete(previousProfileImageKey);
-            } catch (RuntimeException e) {
-                log.warn("이전 프로필 이미지 삭제 실패: key={}", previousProfileImageKey, e);
-            }
+            TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        try {
+                            fileStorage.delete(previousProfileImageKey);
+                        } catch (RuntimeException e) {
+                            log.warn("이전 프로필 이미지 삭제 실패: key={}", previousProfileImageKey, e);
+                        }
+                    }
+                });
         }
 
         String profileImageUrl = createProfileImageUrl(member.getProfileImageKey());
@@ -70,13 +93,21 @@ public class MemberService {
     }
 
     //회원 탈퇴
-    // TODO: 다른 회원 연관 도메인 구현 후 탈퇴 시 연관 데이터 전체 삭제 구현
     @Transactional
     public void withdraw(Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member = findMember(memberId);
 
+        // 파티장으로 참여 중인 파티가 있다면 회원 탈퇴 불가
+        validateMemberCanWithdraw(memberId);
+
+        // 일반 파티원으로 참여 중인 모든 파티에서 탈퇴
+        leaveAllJoinedParties(memberId);
+
+        dailyQuestRepository.deleteAllByMemberId(memberId);
+        routineRepository.deleteAllByMemberId(memberId);
+        streakRepository.deleteAllByMemberId(memberId);
         memberCharacterRepository.deleteAllByMemberId(memberId);
+
         memberRepository.delete(member);
     }
 
@@ -163,5 +194,28 @@ public class MemberService {
         return fileStorage.toPublicUrl(
                 profileImageKey
         );
+    }
+
+    //파티장으로 참여 중인 파티가 있다면 회원 탈퇴 불가
+    private void validateMemberCanWithdraw(Long memberId) {
+        boolean leadsParty = partyMemberRepository.existsByMemberIdAndRole(memberId, PartyRole.LEADER);
+
+        if (leadsParty) {
+            throw new CustomException(ErrorCode.PARTY_LEADER_CANNOT_WITHDRAW);
+        }
+    }
+
+    //일반 파티원으로 참여 중인 모든 파티에서 탈퇴
+    private void leaveAllJoinedParties(Long memberId) {
+        List<PartyMember> joinedPartyMembers = partyMemberRepository.findAllByMemberIdAndRole(memberId, PartyRole.MEMBER);
+
+        for (PartyMember partyMember : joinedPartyMembers) {
+            Party party = partyRepository.findByIdForUpdate(partyMember.getParty().getId())
+                    .orElseThrow(() -> new CustomException(ErrorCode.PARTY_NOT_FOUND));
+
+            party.decreaseCurrentMembers();
+        }
+
+        partyMemberRepository.deleteAll(joinedPartyMembers);
     }
 }
