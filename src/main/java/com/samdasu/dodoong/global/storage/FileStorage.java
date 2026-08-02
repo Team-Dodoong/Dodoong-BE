@@ -4,6 +4,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface FileStorage {
 
+    // 서버를 경유해 파일 업로드 후 공개 URL 반환
+    String upload(MultipartFile file, String directory);
+
     // 업로드용 presigned PUT url 발급
     PresignedUpload createUploadUrl(String directory, String contentType);
 
