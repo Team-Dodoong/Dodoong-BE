@@ -9,7 +9,7 @@ public record ChatMessageHistoryResponse(
         Long messageId,
         Long senderId,
         String senderNickname,
-        String senderProfileImageUrl,
+        String senderProfileImageKey,
         String content,
         boolean isMine,
         LocalDateTime createAt

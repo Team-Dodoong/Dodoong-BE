@@ -10,7 +10,7 @@ public record ChatMessageResponse(
         Long partyId,
         Long senderId,
         String senderNickname,
-        String senderProfileImageUrl,
+        String senderProfileImageKey,
         String content,
         LocalDateTime createdAt
 ) {
