@@ -32,7 +32,8 @@ public class DailyQuestController {
             @AuthenticationPrincipal CustomUserPrincipal principal,
             @Valid @RequestBody DailyQuestCreateRequest request
             ) {
-        return BaseResponse.created(dailyQuestService.createDailyQuest(principal.memberId(), request));
+        DailyQuestCreateResponse response = dailyQuestService.createDailyQuest(principal.memberId(), request);
+        return BaseResponse.created(response);
     }
 
     @GetMapping("/calendar")
@@ -40,27 +41,31 @@ public class DailyQuestController {
             @AuthenticationPrincipal CustomUserPrincipal principal,
             @RequestParam("year") @Min(2000) @Max(3000) int year,
             @RequestParam("month") @Min(1) @Max(12) int month) {
-        return BaseResponse.ok(dailyQuestService.getCalendar(principal.memberId(), year, month));
+        DailyQuestCalendarResponse response = dailyQuestService.getCalendar(principal.memberId(), year, month);
+        return BaseResponse.ok(response);
     }
 
     @GetMapping
     public BaseResponse<DailyQuestListResponse> getDailyQuestByDate(
             @AuthenticationPrincipal CustomUserPrincipal principal,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return BaseResponse.ok(dailyQuestService.getDailyQuestByDate(principal.memberId(), date));
+        DailyQuestListResponse response = dailyQuestService.getDailyQuestByDate(principal.memberId(), date);
+        return BaseResponse.ok(response);
     }
 
     @GetMapping("/quadrants")
     public BaseResponse<DailyQuestQuadrantResponse> getDailyQuestQuadrant(
             @AuthenticationPrincipal CustomUserPrincipal principal) {
-        return BaseResponse.ok(dailyQuestService.getQuadrant(principal.memberId()));
+        DailyQuestQuadrantResponse response = dailyQuestService.getQuadrant(principal.memberId());
+        return BaseResponse.ok(response);
     }
 
     @GetMapping("/quadrants/{questCategory}")
     public BaseResponse<Quadrant> getDailyQuestByCategory(
             @AuthenticationPrincipal CustomUserPrincipal principal,
             @PathVariable QuestCategory questCategory) {
-         return BaseResponse.ok(dailyQuestService.getQuadrantDetail(principal.memberId(), questCategory));
+        Quadrant response = dailyQuestService.getQuadrantDetail(principal.memberId(), questCategory);
+         return BaseResponse.ok(response);
     }
 
     @PatchMapping("/{dailyQuestId}")
@@ -68,7 +73,9 @@ public class DailyQuestController {
             @AuthenticationPrincipal CustomUserPrincipal principal,
             @PathVariable Long dailyQuestId,
             @Valid @RequestBody DailyQuestUpdateRequest request) {
-        return BaseResponse.ok(dailyQuestService.updateDailyQuest(principal.memberId(), dailyQuestId, request));
+        DailyQuestSummary response = dailyQuestService
+                .updateDailyQuest(principal.memberId(), dailyQuestId, request);
+        return BaseResponse.ok(response);
     }
 
     @PatchMapping("/{dailyQuestId}/check")
@@ -76,14 +83,17 @@ public class DailyQuestController {
             @AuthenticationPrincipal CustomUserPrincipal principal,
             @PathVariable Long dailyQuestId,
             @Valid @RequestBody DailyQuestCheckRequest request) {
-        return BaseResponse.ok(dailyQuestService.checkDailyQuest(principal.memberId(), dailyQuestId, request));
+        DailyQuestCheckResponse response = dailyQuestService
+                .checkDailyQuest(principal.memberId(), dailyQuestId, request);
+        return BaseResponse.ok(response);
     }
 
     @PatchMapping("/{dailyQuestId}/postpone")
     public BaseResponse<DailyQuestPostponeResponse> postpone(
             @AuthenticationPrincipal CustomUserPrincipal principal,
             @PathVariable Long dailyQuestId) {
-        return BaseResponse.ok(dailyQuestService.postpone(principal.memberId(), dailyQuestId));
+        DailyQuestPostponeResponse response = dailyQuestService.postpone(principal.memberId(), dailyQuestId);
+        return BaseResponse.ok(response);
     }
 
     @DeleteMapping("/{dailyQuestId}")

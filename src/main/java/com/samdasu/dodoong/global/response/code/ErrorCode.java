@@ -90,6 +90,12 @@ public enum ErrorCode implements BaseCode {
     PARTY_LEADER_CANNOT_WITHDRAW(HttpStatus.CONFLICT, "파티장으로 참여 중인 파티가 있습니다. 해당 파티를 삭제한 후 회원 탈퇴를 진행해주세요."),
     PARTY_ALREADY_VERIFIED_TODAY(HttpStatus.CONFLICT, "오늘 이미 인증을 완료했습니다."),
 
+    // Chat
+    // 400 BAD REQUEST
+    INVALID_CHAT_DESTINATION(HttpStatus.BAD_REQUEST, "허용되지 않은 구독 경로입니다."),
+    // 404 NOT FOUND
+    CHAT_MESSAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 메시지입니다."),
+
     // S3
     // 400 BAD REQUEST
     UNSUPPORTED_IMAGE_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 이미지 형식입니다."),
