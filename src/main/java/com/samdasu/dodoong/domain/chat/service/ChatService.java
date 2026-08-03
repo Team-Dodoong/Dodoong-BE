@@ -6,6 +6,7 @@ import com.samdasu.dodoong.domain.chat.dto.response.ChatMessageHistoryResponse;
 import com.samdasu.dodoong.domain.chat.dto.response.ChatMessageResponse;
 import com.samdasu.dodoong.domain.chat.dto.response.ChatRoomResponse;
 import com.samdasu.dodoong.domain.chat.entity.ChatMessage;
+import com.samdasu.dodoong.domain.chat.event.ChatMessageCreatedEvent;
 import com.samdasu.dodoong.domain.chat.repository.ChatMessageRepository;
 import com.samdasu.dodoong.domain.member.entity.Member;
 import com.samdasu.dodoong.domain.member.repository.MemberRepository;
@@ -16,6 +17,7 @@ import com.samdasu.dodoong.domain.party.repository.projection.PartyMemberCountPr
 import com.samdasu.dodoong.global.exception.CustomException;
 import com.samdasu.dodoong.global.response.code.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -36,6 +38,7 @@ public class ChatService {
     private final MemberRepository memberRepository;
     private final PartyRepository partyRepository;
     private final ChatMessagePublisher chatMessagePublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void sendMessage(Long partyId, Long senderId, ChatMessageRequest request) {
@@ -56,7 +59,8 @@ public class ChatService {
                         .build()
         );
 
-        chatMessagePublisher.broadcastToParty(partyId, ChatMessageResponse.from(saved));
+        eventPublisher.publishEvent(
+                new ChatMessageCreatedEvent(partyId, ChatMessageResponse.from(saved)));
     }
 
     public ChatHistoryResponse getChatHistory(Long partyId, Long memberId, Long cursor, int size) {
