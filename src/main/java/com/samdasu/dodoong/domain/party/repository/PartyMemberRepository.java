@@ -1,6 +1,7 @@
 package com.samdasu.dodoong.domain.party.repository;
 
 import com.samdasu.dodoong.domain.party.entity.PartyMember;
+import com.samdasu.dodoong.domain.party.repository.projection.PartyMemberCountProjection;
 import com.samdasu.dodoong.domain.party.entity.PartyRole;
 import org.springframework.data.jpa.repository.Modifying;
 import jakarta.persistence.LockModeType;
@@ -69,6 +70,15 @@ public interface PartyMemberRepository extends JpaRepository<PartyMember, Long> 
     """)
     List<Long> findMemberIdsByPartyId(@Param("partyId") Long partyId);
 
+    @Query("""
+    SELECT pm.party.id AS partyId, COUNT(pm) AS memberCount
+    FROM PartyMember pm 
+    WHERE pm.party.id IN :partyIds
+    GROUP BY pm.party.id
+    """)
+    List<PartyMemberCountProjection> countByPartyIds(
+            @Param("partyIds") List<Long> partyIds
+    );
     //회원 탈퇴 데이터 삭제 관련 메서드
     // 해당 회원이 파티장인 파티가 있는지 확인
     boolean existsByMemberIdAndRole(Long memberId, PartyRole role);
