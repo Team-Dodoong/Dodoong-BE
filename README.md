@@ -22,11 +22,12 @@
 - 2026.06.30 ~ 2026.08.07
 
 ## 💡 주요 기능
-이미지 추가
+<img width="1920" height="1080" alt="11" src="https://github.com/user-attachments/assets/7270f7dd-08d5-409a-aaf7-fed824a1b34e" />
+<img width="1920" height="1080" alt="9" src="https://github.com/user-attachments/assets/5145907e-386d-4660-bdca-ebf4d69291e5" />
+<img width="1920" height="1080" alt="19" src="https://github.com/user-attachments/assets/7012800c-81f0-4fcc-94d0-d12134a6f577" />
 
-
-## 🔧 아키텍처
-이미지 추가
+## 📚 API 문서
+- Swagger UI: https://api.dodoong.p-e.kr/swagger-ui/index.html
 
 ## 🔨 기술 스택
 
@@ -77,7 +78,23 @@
 
 ## 📁 프로젝트 구조
 ```
-
+src/main/java/com/samdasu/dodoong
+├── domain
+│   ├── auth            # 인증·인가, JWT, 토큰 재발급
+│   ├── character       # 캐릭터 조회·구매·장착
+│   ├── chat            # 실시간 채팅과 채팅 내역
+│   ├── member          # 회원·프로필·레벨업·탈퇴
+│   ├── party           # 파티, 인증, 랭킹
+│   ├── quest           # 일일 퀘스트와 캘린더·사분면
+│   ├── routine         # 반복 루틴
+│   └── streak          # 연속 달성 기록
+├── global
+│   ├── config          # Security, CORS, S3, Swagger, WebSocket 설정
+│   ├── exception       # 전역 예외 처리
+│   ├── response        # 공통 응답과 상태 코드
+│   ├── storage         # S3 파일 저장 추상화
+│   └── websocket       # WebSocket 인증과 Principal
+└── DodoongApplication.java
 
 ```
 
