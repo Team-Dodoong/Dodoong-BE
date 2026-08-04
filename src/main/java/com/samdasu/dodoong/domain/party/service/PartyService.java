@@ -54,6 +54,7 @@ import java.util.stream.Collectors;
 public class PartyService {
 
     private static final ZoneId ZONE_KST = ZoneId.of("Asia/Seoul");
+    private static final String PARTY_IMAGE_DIRECTORY = "parties";
 
     private final PartyRepository partyRepository;
     private final PartyMemberRepository partyMemberRepository;
@@ -73,9 +74,9 @@ public class PartyService {
         if (image != null && !image.isEmpty()) {
             String imageUrl = fileStorage.upload(
                     image,
-                    "parties/" + savedParty.getId()
+                    PARTY_IMAGE_DIRECTORY + "/" + savedParty.getId()
             );
-            savedParty.updateImageUrl(imageUrl);
+            savedParty.updateImageUrl(fileStorage.extractKeyFromUrl(imageUrl));
         }
 
         PartyMember partyMember = PartyMember.builder()
@@ -89,12 +90,25 @@ public class PartyService {
     }
 
     @Transactional
-    public PartyResponseDto updateParty(Long partyId, PartyUpdateRequestDto requestDto, Long memberId) {
+    public PartyResponseDto updateParty(Long partyId, PartyUpdateRequestDto requestDto, MultipartFile image, Long memberId) {
         Party party = findParty(partyId);
         authorizePartyLeader(partyId, memberId);
 
         String encodedPassword = encodePassword(requestDto.partyPassword());
         party.updateParty(requestDto, encodedPassword);
+
+        if (image != null && !image.isEmpty()) {
+            // 기존 이미지 삭제
+            if (party.getImageUrl() != null) {
+                fileStorage.delete(party.getImageUrl());
+            }
+
+            String imageUrl = fileStorage.upload(
+                    image,
+                    PARTY_IMAGE_DIRECTORY + "/" + partyId
+            );
+            party.updateImageUrl(fileStorage.extractKeyFromUrl(imageUrl));
+        }
 
         return PartyResponseDto.from(party);
     }

@@ -84,7 +84,6 @@ public class Party extends BaseTimeEntity {
         this.maxMembers = dto.maxMembers();
         this.isPublic = dto.isPublic();
         this.partyPassword = dto.isPublic() ? null : encodedPassword;
-        this.imageUrl = dto.imageUrl();
         updateRecruitingStatus();
     }
 

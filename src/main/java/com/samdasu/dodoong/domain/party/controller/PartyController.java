@@ -48,13 +48,17 @@ public class PartyController {
         return BaseResponse.created(response);
     }
 
-    @PatchMapping("/{partyId}")
+    @PatchMapping(
+            value = "/{partyId}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public BaseResponse<PartyResponseDto> updateParty(
             @PathVariable Long partyId,
-            @Valid @RequestBody PartyUpdateRequestDto requestDto,
+            @RequestPart("requestDto") @Valid PartyUpdateRequestDto requestDto,
+            @RequestPart(value = "image", required = false) MultipartFile image,
             @AuthenticationPrincipal CustomUserPrincipal principal
     ) {
-        PartyResponseDto response = partyService.updateParty(partyId, requestDto, principal.memberId());
+        PartyResponseDto response = partyService.updateParty(partyId, requestDto, image, principal.memberId());
         return BaseResponse.ok(response);
     }
 
