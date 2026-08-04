@@ -6,7 +6,7 @@ public record PartyMonthlyRankingItemResponse(
         int rank,
         Long memberId,
         String nickname,
-        String profileImageUrl,
+        Long characterId,
         long score,
         long verificationCount
 ) {
@@ -14,13 +14,13 @@ public record PartyMonthlyRankingItemResponse(
             int rank,
             PartyMember partyMember,
             long verificationCount,
-            String profileImageUrl
+            Long characterId
     ) {
         return new PartyMonthlyRankingItemResponse(
                 rank,
                 partyMember.getMember().getId(),
                 partyMember.getMember().getNickname(),
-                profileImageUrl,
+                characterId,
                 verificationCount,
                 verificationCount
         );
