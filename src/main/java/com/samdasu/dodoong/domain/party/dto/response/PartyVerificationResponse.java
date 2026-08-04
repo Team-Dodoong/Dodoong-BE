@@ -14,10 +14,13 @@ public record PartyVerificationResponse(
         String imageUrl,
         boolean verified,
         LocalDateTime createdAt,
+        int level,
         int experience,
-        boolean canLevelUp
+        boolean leveledUp
 ) {
-    public static PartyVerificationResponse from(PartyVerification verification, Member member) {
+    public static PartyVerificationResponse from(PartyVerification verification,
+                                                 Member member,
+                                                 boolean leveledUp) {
         return new PartyVerificationResponse(
                 verification.getId(),
                 verification.getParty().getId(),
@@ -27,8 +30,9 @@ public record PartyVerificationResponse(
                 verification.getImageUrl(),
                 verification.isVerified(),
                 verification.getCreatedAt(),
+                member.getLevel(),
                 member.getExperience(),
-                member.canLevelUp()
+                leveledUp
         );
     }
 }

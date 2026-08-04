@@ -330,9 +330,14 @@ public class PartyService {
                         .build()
         );
 
+        int previousLevel = member.getLevel();
         member.addExperience(EXPERIENCE_PER_PARTY_QUEST);
 
-        return PartyVerificationResponse.from(savedVerification, member);
+        return PartyVerificationResponse.from(
+                savedVerification,
+                member,
+                member.getLevel() > previousLevel
+        );
     }
 
     private void validateJoinEligibility(
