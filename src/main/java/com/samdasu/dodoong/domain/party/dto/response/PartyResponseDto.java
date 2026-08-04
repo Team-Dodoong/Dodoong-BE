@@ -18,13 +18,13 @@ public record PartyResponseDto(
         String questContent,
         LocalDateTime createdAt
 ) {
-    public static PartyResponseDto from(Party party) {
+    public static PartyResponseDto from(Party party, String imageUrl) {
         return new PartyResponseDto(
                 party.getId(),
                 party.getName(),
                 party.getDescription(),
                 party.getCategory(),
-                party.getImageUrl(),
+                imageUrl,
                 party.getCurrentMembers(),
                 party.getMaxMembers(),
                 party.isRecruiting(),

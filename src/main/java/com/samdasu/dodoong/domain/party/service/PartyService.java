@@ -86,7 +86,7 @@ public class PartyService {
                 .build();
         partyMemberRepository.save(partyMember);
 
-        return PartyResponseDto.from(savedParty);
+        return PartyResponseDto.from(savedParty, createPartyImageUrl(savedParty.getImageUrl()));
     }
 
     @Transactional
@@ -110,7 +110,7 @@ public class PartyService {
             party.updateImageUrl(fileStorage.extractKeyFromUrl(imageUrl));
         }
 
-        return PartyResponseDto.from(party);
+        return PartyResponseDto.from(party, createPartyImageUrl(party.getImageUrl()));
     }
 
     @Transactional
@@ -124,7 +124,7 @@ public class PartyService {
     @Transactional(readOnly = true)
     public PartyResponseDto getPartyDetail(Long partyId) {
         Party party = findParty(partyId);
-        return PartyResponseDto.from(party);
+        return PartyResponseDto.from(party, createPartyImageUrl(party.getImageUrl()));
     }
 
     @Transactional(readOnly = true)
@@ -587,5 +587,12 @@ public class PartyService {
         }
 
         return fileStorage.toPublicUrl(profileImageKey);
+    }
+
+    private String createPartyImageUrl(String imageKey) {
+        if (imageKey == null || imageKey.isBlank()) {
+            return null; // 이미지가 없으면 null 반환 (프론트에서 기본 이미지 처리)
+        }
+        return fileStorage.createDownloadUrl(imageKey);
     }
 }
