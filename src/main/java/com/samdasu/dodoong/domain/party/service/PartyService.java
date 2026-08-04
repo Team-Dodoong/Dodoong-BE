@@ -41,10 +41,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.ZoneId;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -86,7 +83,7 @@ public class PartyService {
                 .build();
         partyMemberRepository.save(partyMember);
 
-        return PartyResponseDto.from(savedParty, createPartyImageUrl(savedParty.getImageUrl()));
+        return PartyResponseDto.from(savedParty, createPartyImageUrl(savedParty.getImageUrl()), true, true);
     }
 
     @Transactional
@@ -110,7 +107,7 @@ public class PartyService {
             party.updateImageUrl(fileStorage.extractKeyFromUrl(imageUrl));
         }
 
-        return PartyResponseDto.from(party, createPartyImageUrl(party.getImageUrl()));
+        return PartyResponseDto.from(party, createPartyImageUrl(party.getImageUrl()), true, true);
     }
 
     @Transactional
@@ -122,9 +119,10 @@ public class PartyService {
     }
 
     @Transactional(readOnly = true)
-    public PartyResponseDto getPartyDetail(Long partyId) {
+    public PartyResponseDto getPartyDetail(Long memberId, Long partyId) {
         Party party = findParty(partyId);
-        return PartyResponseDto.from(party, createPartyImageUrl(party.getImageUrl()));
+        Member member = findMember(memberId);
+        return createDetailResponse(party, member.getId());
     }
 
     @Transactional(readOnly = true)
@@ -591,8 +589,22 @@ public class PartyService {
 
     private String createPartyImageUrl(String imageKey) {
         if (imageKey == null || imageKey.isBlank()) {
-            return null; // 이미지가 없으면 null 반환 (프론트에서 기본 이미지 처리)
+            return null;
         }
         return fileStorage.createDownloadUrl(imageKey);
+    }
+
+    private PartyResponseDto createDetailResponse(Party party, Long memberId) {
+        boolean isOwner = false;
+        boolean isJoined = false;
+
+        Optional<PartyMember> myPartyMember = partyMemberRepository.findByMemberIdAndPartyId(memberId, party.getId());
+
+        if (myPartyMember.isPresent()) {
+            isJoined = true;
+            isOwner = myPartyMember.get().getRole() == PartyRole.LEADER;
+        }
+
+        return PartyResponseDto.from(party, createPartyImageUrl(party.getImageUrl()), isOwner, isJoined);
     }
 }

@@ -73,9 +73,10 @@ public class PartyController {
 
     @GetMapping("/{partyId}")
     public BaseResponse<PartyResponseDto> getPartyDetail(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
             @PathVariable Long partyId
     ) {
-        PartyResponseDto responses = partyService.getPartyDetail(partyId);
+        PartyResponseDto responses = partyService.getPartyDetail(principal.memberId(), partyId);
         return BaseResponse.ok(responses);
     }
 
