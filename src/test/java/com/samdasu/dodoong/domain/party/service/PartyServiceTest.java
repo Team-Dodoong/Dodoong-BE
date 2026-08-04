@@ -490,6 +490,7 @@ class PartyServiceTest {
                 .thenReturn(Optional.of(partyMember));
         when(partyMemberRepository.findByMemberIdAndPartyIdForUpdate(memberId, partyId))
                 .thenReturn(Optional.of(partyMember));
+        when(memberRepository.findByIdForUpdate(memberId)).thenReturn(Optional.of(member));
         when(partyVerificationRepository.existsByPartyMemberIdAndVerificationDate(eq(15L), any(LocalDate.class)))
                 .thenReturn(false, false);
         when(fileStorage.upload(image, "party-verifications/3/7"))
@@ -506,10 +507,12 @@ class PartyServiceTest {
         assertThat(response.imageUrl()).isEqualTo("https://example.com/verifications/24.jpg");
         assertThat(response.verified()).isTrue();
         assertThat(response.createdAt()).isEqualTo(LocalDateTime.of(2026, 7, 13, 23, 26, 41));
+        assertThat(member.getExperience()).isEqualTo(10);
 
         InOrder inOrder = inOrder(
                 partyRepository,
                 partyMemberRepository,
+                memberRepository,
                 partyVerificationRepository,
                 fileStorage
         );
@@ -521,6 +524,8 @@ class PartyServiceTest {
         inOrder.verify(partyMemberRepository).findByMemberIdAndPartyIdForUpdate(memberId, partyId);
         inOrder.verify(partyVerificationRepository)
                 .existsByPartyMemberIdAndVerificationDate(eq(15L), any(LocalDate.class));
+        inOrder.verify(memberRepository).findByIdForUpdate(memberId);
+        inOrder.verify(partyVerificationRepository).save(any(PartyVerification.class));
     }
 
     @Test

@@ -54,6 +54,7 @@ import java.util.stream.Collectors;
 public class PartyService {
 
     private static final ZoneId ZONE_KST = ZoneId.of("Asia/Seoul");
+    private static final int EXPERIENCE_PER_PARTY_QUEST = 10;
 
     private final PartyRepository partyRepository;
     private final PartyMemberRepository partyMemberRepository;
@@ -317,6 +318,8 @@ public class PartyService {
             throw new CustomException(ErrorCode.PARTY_ALREADY_VERIFIED_TODAY);
         }
 
+        Member member = findMemberForUpdate(memberId);
+
         PartyVerification savedVerification = partyVerificationRepository.save(
                 PartyVerification.builder()
                         .party(party)
@@ -326,6 +329,8 @@ public class PartyService {
                         .verificationDate(today)
                         .build()
         );
+
+        member.addExperience(EXPERIENCE_PER_PARTY_QUEST);
 
         return PartyVerificationResponse.from(savedVerification);
     }
@@ -536,6 +541,11 @@ public class PartyService {
 
     private Member findMember(Long memberId) {
         return memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    }
+
+    private Member findMemberForUpdate(Long memberId) {
+        return memberRepository.findByIdForUpdate(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
     }
 
