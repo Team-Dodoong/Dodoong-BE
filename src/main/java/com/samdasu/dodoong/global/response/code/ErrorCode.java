@@ -41,7 +41,6 @@ public enum ErrorCode implements BaseCode {
     // Member
     // 400 BAD REQUEST (S3 연결 전 임시)
     PROFILE_IMAGE_UPLOAD_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "실제 사진 업로드는 아직 지원되지 않습니다."),
-    INSUFFICIENT_EXPERIENCE(HttpStatus.BAD_REQUEST, "레벨업에 필요한 경험치가 부족합니다."),
     // 404 NOT FOUND
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하는 사용자가 없습니다."),
     // 409 CONFLICT

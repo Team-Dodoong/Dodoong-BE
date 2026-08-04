@@ -184,18 +184,26 @@ public class DailyQuestService {
                 .orElseThrow(() -> new CustomException(ErrorCode.DAILY_QUEST_NOT_FOUND));
 
         boolean target = request.isChecked();
-        int before = member.getExperience();
+        int previousLevel = member.getLevel();
+        int experienceDelta = 0;
 
         if (dailyQuest.changeChecked(target)) {
             if (target) {
                 member.addExperience(EXPERIENCE_PER_QUEST);
+                experienceDelta = EXPERIENCE_PER_QUEST;
             } else {
                 member.subtractExperience(EXPERIENCE_PER_QUEST);
+                experienceDelta = -EXPERIENCE_PER_QUEST;
             }
         }
 
-        int after = member.getExperience();
-        return DailyQuestCheckResponse.of(dailyQuest, after, after - before);
+        return DailyQuestCheckResponse.of(
+                dailyQuest,
+                member.getLevel(),
+                member.getExperience(),
+                experienceDelta,
+                member.getLevel() > previousLevel
+        );
     }
 
     @Transactional

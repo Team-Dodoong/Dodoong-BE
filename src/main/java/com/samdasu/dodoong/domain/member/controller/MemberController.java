@@ -4,7 +4,6 @@ import com.samdasu.dodoong.domain.auth.security.CustomUserPrincipal;
 import com.samdasu.dodoong.domain.auth.service.AuthService;
 import com.samdasu.dodoong.domain.member.dto.request.ProfileImageUploadRequest;
 import com.samdasu.dodoong.domain.member.dto.request.ProfileUpdateRequest;
-import com.samdasu.dodoong.domain.member.dto.response.LevelUpResponse;
 import com.samdasu.dodoong.domain.member.dto.response.MemberResponse;
 import com.samdasu.dodoong.domain.member.dto.response.ProfileImageUploadResponse;
 import com.samdasu.dodoong.domain.member.dto.response.ProfileUpdateResponse;
@@ -75,11 +74,4 @@ public class MemberController {
         return BaseResponse.noContent();
     }
 
-    //레벨업
-    @PatchMapping("/levelup")
-    public BaseResponse<LevelUpResponse> levelUp(@AuthenticationPrincipal CustomUserPrincipal principal) {
-        LevelUpResponse response = memberService.levelUp(principal.memberId());
-
-        return BaseResponse.ok(response);
-    }
 }
