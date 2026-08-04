@@ -16,21 +16,25 @@ public record PartyResponseDto(
         boolean isRecruiting,
         boolean isPublic,
         String questContent,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        boolean isOwner,
+        boolean isJoined
 ) {
-    public static PartyResponseDto from(Party party) {
+    public static PartyResponseDto from(Party party, String imageUrl, boolean isOwner, boolean isJoined) {
         return new PartyResponseDto(
                 party.getId(),
                 party.getName(),
                 party.getDescription(),
                 party.getCategory(),
-                party.getImageUrl(),
+                imageUrl,
                 party.getCurrentMembers(),
                 party.getMaxMembers(),
                 party.isRecruiting(),
                 party.isPublic(),
                 party.getQuestContent(),
-                party.getCreatedAt()
+                party.getCreatedAt(),
+                isOwner,
+                isJoined
         );
     }
 }

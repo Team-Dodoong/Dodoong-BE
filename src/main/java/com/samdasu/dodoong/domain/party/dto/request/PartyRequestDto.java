@@ -26,16 +26,13 @@ public record PartyRequestDto(
         String partyPassword,
 
         @NotBlank(message = "퀘스트 내용은 필수 입력값입니다.")
-        String questContent,
-
-        String imageUrl
+        String questContent
 ) {
     public Party toEntity(String encodedPassword) {
         return Party.builder()
                 .name(this.name)
                 .description(this.description)
                 .category(this.categories)
-                .imageUrl(this.imageUrl)
                 .maxMembers(this.maxMembers)
                 .isRecruiting(true)
                 .isPublic(this.isPublic)

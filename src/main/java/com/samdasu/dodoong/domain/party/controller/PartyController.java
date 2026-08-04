@@ -38,22 +38,27 @@ public class PartyController {
 
     private final PartyService partyService;
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public BaseResponse<PartyResponseDto> createParty(
-            @Valid @RequestBody PartyRequestDto requestDto,
+            @RequestPart("requestDto") @Valid PartyRequestDto requestDto,
+            @RequestPart(value = "image", required = false) MultipartFile image,
             @AuthenticationPrincipal CustomUserPrincipal principal
     ) {
-        PartyResponseDto response = partyService.createParty(requestDto, principal.memberId());
+        PartyResponseDto response = partyService.createParty(requestDto, image, principal.memberId());
         return BaseResponse.created(response);
     }
 
-    @PatchMapping("/{partyId}")
+    @PatchMapping(
+            value = "/{partyId}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public BaseResponse<PartyResponseDto> updateParty(
             @PathVariable Long partyId,
-            @Valid @RequestBody PartyUpdateRequestDto requestDto,
+            @RequestPart("requestDto") @Valid PartyUpdateRequestDto requestDto,
+            @RequestPart(value = "image", required = false) MultipartFile image,
             @AuthenticationPrincipal CustomUserPrincipal principal
     ) {
-        PartyResponseDto response = partyService.updateParty(partyId, requestDto, principal.memberId());
+        PartyResponseDto response = partyService.updateParty(partyId, requestDto, image, principal.memberId());
         return BaseResponse.ok(response);
     }
 
@@ -68,9 +73,10 @@ public class PartyController {
 
     @GetMapping("/{partyId}")
     public BaseResponse<PartyResponseDto> getPartyDetail(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
             @PathVariable Long partyId
     ) {
-        PartyResponseDto responses = partyService.getPartyDetail(partyId);
+        PartyResponseDto responses = partyService.getPartyDetail(principal.memberId(), partyId);
         return BaseResponse.ok(responses);
     }
 
