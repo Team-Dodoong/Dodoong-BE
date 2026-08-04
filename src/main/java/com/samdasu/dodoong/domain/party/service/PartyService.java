@@ -332,7 +332,7 @@ public class PartyService {
 
         member.addExperience(EXPERIENCE_PER_PARTY_QUEST);
 
-        return PartyVerificationResponse.from(savedVerification);
+        return PartyVerificationResponse.from(savedVerification, member);
     }
 
     private void validateJoinEligibility(
