@@ -64,11 +64,35 @@ public class Member extends BaseTimeEntity {
     }
 
     public void addExperience(int amount) {
+        if (amount <= 0) {
+            return;
+        }
+
         this.experience += amount;
+
+        while (canLevelUp()) {
+            int requiredExperience = calculateRequiredExperience();
+            this.experience -= requiredExperience;
+            this.level += 1;
+            earnCoin(levelUpReward());
+        }
     }
 
     public void subtractExperience(int amount) {
-        this.experience -= Math.max(0, this.experience - amount);
+        if (amount <= 0) {
+            return;
+        }
+
+        int remaining = amount;
+
+        while (remaining > this.experience && this.level > 1) {
+            remaining -= this.experience;
+            spendCoin(levelUpReward());
+            this.level -= 1;
+            this.experience = calculateRequiredExperience();
+        }
+
+        this.experience = Math.max(0, this.experience - remaining);
     }
 
     //코인 보유량 검사
@@ -93,9 +117,7 @@ public class Member extends BaseTimeEntity {
         return this.experience >= calculateRequiredExperience();
     }
 
-    public void levelUp() {
-        this.level += 1;
-        this.experience = 0;
-        earnCoin(this.level * 10);
+    private int levelUpReward() {
+        return this.level * 10;
     }
 }
