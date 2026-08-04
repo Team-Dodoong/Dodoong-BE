@@ -1,5 +1,6 @@
 package com.samdasu.dodoong.domain.party.service;
 
+import com.samdasu.dodoong.domain.character.repository.MemberCharacterRepository;
 import com.samdasu.dodoong.domain.member.entity.Member;
 import com.samdasu.dodoong.domain.member.repository.MemberRepository;
 import com.samdasu.dodoong.domain.party.dto.request.PartyJoinRequest;
@@ -23,8 +24,6 @@ import com.samdasu.dodoong.domain.party.repository.PartyMemberRepository;
 import com.samdasu.dodoong.domain.party.repository.PartyRepository;
 import com.samdasu.dodoong.domain.party.repository.PartyVerificationRepository;
 import com.samdasu.dodoong.domain.party.repository.projection.MonthlyPartyVerificationCountProjection;
-import com.samdasu.dodoong.domain.quest.repository.DailyQuestRepository;
-import com.samdasu.dodoong.domain.quest.repository.projection.MonthlyPartyParticipationProjection;
 import com.samdasu.dodoong.global.exception.CustomException;
 import com.samdasu.dodoong.global.response.code.ErrorCode;
 import com.samdasu.dodoong.global.storage.FileStorage;
@@ -59,7 +58,7 @@ public class PartyService {
     private final PartyRepository partyRepository;
     private final PartyMemberRepository partyMemberRepository;
     private final MemberRepository memberRepository;
-    private final DailyQuestRepository dailyQuestRepository;
+    private final MemberCharacterRepository memberCharacterRepository;
     private final PartyVerificationRepository partyVerificationRepository;
     private final PasswordEncoder passwordEncoder;
     private final FileStorage fileStorage;
@@ -163,7 +162,7 @@ public class PartyService {
             Long partyId
     ) {
         Party party = findParty(partyId);
-        validatePartyMembership(memberId, partyId);
+        PartyMember partyMember = findPartyMember(memberId, partyId);
 
         LocalDate today = LocalDate.now(ZONE_KST);
         YearMonth currentMonth = YearMonth.from(today);
@@ -173,23 +172,21 @@ public class PartyService {
         List<Long> partyMemberIds = partyMemberRepository.findMemberIdsByPartyId(partyId);
 
         Map<Long, Long> participationCountMap =
-                dailyQuestRepository.countMonthlyPartyParticipations(
-                                partyMemberIds,
-                                party.getQuestContent(),
+                partyVerificationRepository.countMonthlyVerificationCounts(
+                                partyId,
                                 startDate,
                                 endDate
                         )
                         .stream()
                         .collect(Collectors.toMap(
-                                MonthlyPartyParticipationProjection::getMemberId,
-                                MonthlyPartyParticipationProjection::getParticipationCount
+                                MonthlyPartyVerificationCountProjection::getMemberId,
+                                MonthlyPartyVerificationCountProjection::getVerificationCount
                         ));
 
         long monthlyParticipationCount = participationCountMap.getOrDefault(memberId, 0L);
         int rank = calculateRank(memberId, partyMemberIds, participationCountMap);
-        boolean todayQuestCompleted = dailyQuestRepository.existsCheckedPartyQuest(
-                memberId,
-                party.getQuestContent(),
+        boolean todayQuestCompleted = partyVerificationRepository.existsByPartyMemberIdAndVerificationDate(
+                partyMember.getId(),
                 today
         );
 
@@ -216,6 +213,7 @@ public class PartyService {
         LocalDate endDate = currentMonth.atEndOfMonth();
 
         List<PartyMember> partyMembers = partyMemberRepository.findAllByPartyIdWithMember(partyId);
+        Map<Long, Long> equippedCharacterIdMap = findEquippedCharacterIdMap(partyMembers);
         Map<Long, Long> verificationCountMap =
                 partyVerificationRepository.countMonthlyVerificationCounts(
                                 partyId,
@@ -230,6 +228,7 @@ public class PartyService {
 
         List<PartyMonthlyRankingItemResponse> rankings = buildMonthlyRankings(
                 partyMembers,
+                equippedCharacterIdMap,
                 verificationCountMap
         );
 
@@ -361,12 +360,6 @@ public class PartyService {
         }
     }
 
-    private void validatePartyMembership(Long memberId, Long partyId) {
-        if (!partyMemberRepository.existsByMemberIdAndPartyId(memberId, partyId)) {
-            throw new CustomException(ErrorCode.PARTY_MEMBER_ONLY);
-        }
-    }
-
     private void validatePartyVerificationHistoryAccess(Long memberId, Long partyId) {
         if (!partyMemberRepository.existsByMemberIdAndPartyId(memberId, partyId)) {
             throw new CustomException(ErrorCode.PARTY_VERIFICATION_HISTORY_FORBIDDEN);
@@ -426,6 +419,7 @@ public class PartyService {
 
     private List<PartyMonthlyRankingItemResponse> buildMonthlyRankings(
             List<PartyMember> partyMembers,
+            Map<Long, Long> equippedCharacterIdMap,
             Map<Long, Long> verificationCountMap
     ) {
         List<MemberMonthlyVerificationStat> sortedStats = partyMembers.stream()
@@ -450,8 +444,8 @@ public class PartyService {
                 previousScore = stat.verificationCount();
             }
 
-            String profileImageUrl = createProfileImageUrl(
-                    stat.partyMember().getMember().getProfileImageKey()
+            Long characterId = equippedCharacterIdMap.get(
+                    stat.partyMember().getMember().getId()
             );
 
             rankings.add(
@@ -459,12 +453,29 @@ public class PartyService {
                             currentRank,
                             stat.partyMember(),
                             stat.verificationCount(),
-                            profileImageUrl
+                            characterId
                     )
             );
         }
 
         return rankings;
+    }
+
+    private Map<Long, Long> findEquippedCharacterIdMap(List<PartyMember> partyMembers) {
+        List<Long> memberIds = partyMembers.stream()
+                .map(partyMember -> partyMember.getMember().getId())
+                .toList();
+
+        if (memberIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return memberCharacterRepository.findEquippedByMemberIds(memberIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        memberCharacter -> memberCharacter.getMember().getId(),
+                        memberCharacter -> memberCharacter.getCharacterItem().getId()
+                ));
     }
 
     private int calculateRank(

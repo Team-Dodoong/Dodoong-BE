@@ -1,5 +1,8 @@
 package com.samdasu.dodoong.domain.party.service;
 
+import com.samdasu.dodoong.domain.character.entity.CharacterItem;
+import com.samdasu.dodoong.domain.character.entity.MemberCharacter;
+import com.samdasu.dodoong.domain.character.repository.MemberCharacterRepository;
 import com.samdasu.dodoong.domain.member.entity.Member;
 import com.samdasu.dodoong.domain.member.repository.MemberRepository;
 import com.samdasu.dodoong.domain.party.dto.request.PartyJoinRequest;
@@ -16,8 +19,6 @@ import com.samdasu.dodoong.domain.party.repository.PartyMemberRepository;
 import com.samdasu.dodoong.domain.party.repository.PartyRepository;
 import com.samdasu.dodoong.domain.party.repository.PartyVerificationRepository;
 import com.samdasu.dodoong.domain.party.repository.projection.MonthlyPartyVerificationCountProjection;
-import com.samdasu.dodoong.domain.quest.repository.DailyQuestRepository;
-import com.samdasu.dodoong.domain.quest.repository.projection.MonthlyPartyParticipationProjection;
 import com.samdasu.dodoong.global.exception.CustomException;
 import com.samdasu.dodoong.global.response.code.ErrorCode;
 import com.samdasu.dodoong.global.storage.FileStorage;
@@ -58,7 +59,7 @@ class PartyServiceTest {
     private MemberRepository memberRepository;
 
     @Mock
-    private DailyQuestRepository dailyQuestRepository;
+    private MemberCharacterRepository memberCharacterRepository;
 
     @Mock
     private PartyVerificationRepository partyVerificationRepository;
@@ -232,17 +233,23 @@ class PartyServiceTest {
         Long memberId = 7L;
         Long partyId = 3L;
         Party party = createParty(partyId, "매일 알고리즘 풀기", null, 10, true);
+        PartyMember partyMember = createPartyMember(
+                15L,
+                createMember(memberId, "eunseo", "은서"),
+                party
+        );
 
         when(partyRepository.findById(partyId)).thenReturn(Optional.of(party));
-        when(partyMemberRepository.existsByMemberIdAndPartyId(memberId, partyId)).thenReturn(true);
+        when(partyMemberRepository.findByMemberIdAndPartyId(memberId, partyId))
+                .thenReturn(Optional.of(partyMember));
         when(partyMemberRepository.findMemberIdsByPartyId(partyId)).thenReturn(List.of(7L, 8L, 9L));
-        when(dailyQuestRepository.countMonthlyPartyParticipations(anyList(), eq("매일 알고리즘 문제 1개 풀기"), any(), any()))
+        when(partyVerificationRepository.countMonthlyVerificationCounts(eq(partyId), any(), any()))
                 .thenReturn(List.of(
-                        new TestMonthlyPartyParticipationProjection(8L, 10L),
-                        new TestMonthlyPartyParticipationProjection(7L, 8L),
-                        new TestMonthlyPartyParticipationProjection(9L, 8L)
+                        new TestMonthlyPartyVerificationCountProjection(8L, 10L),
+                        new TestMonthlyPartyVerificationCountProjection(7L, 8L),
+                        new TestMonthlyPartyVerificationCountProjection(9L, 8L)
                 ));
-        when(dailyQuestRepository.existsCheckedPartyQuest(eq(memberId), eq("매일 알고리즘 문제 1개 풀기"), any()))
+        when(partyVerificationRepository.existsByPartyMemberIdAndVerificationDate(eq(15L), any(LocalDate.class)))
                 .thenReturn(true);
 
         PartyMonthlyMeResponse response = partyService.getMyMonthlyPartyStatus(memberId, partyId);
@@ -266,7 +273,8 @@ class PartyServiceTest {
         Party party = createParty(partyId, "매일 알고리즘 풀기", null, 10, true);
 
         when(partyRepository.findById(partyId)).thenReturn(Optional.of(party));
-        when(partyMemberRepository.existsByMemberIdAndPartyId(memberId, partyId)).thenReturn(false);
+        when(partyMemberRepository.findByMemberIdAndPartyId(memberId, partyId))
+                .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> partyService.getMyMonthlyPartyStatus(memberId, partyId))
                 .isInstanceOf(CustomException.class)
@@ -301,15 +309,15 @@ class PartyServiceTest {
                 createMember(10L, "jiho", "지호", null),
                 party
         );
+        MemberCharacter equippedCharacter1 = createEquippedMemberCharacter(7L, 101L);
+        MemberCharacter equippedCharacter2 = createEquippedMemberCharacter(9L, 303L);
 
         when(partyRepository.findById(partyId)).thenReturn(Optional.of(party));
         when(partyMemberRepository.existsByMemberIdAndPartyId(memberId, partyId)).thenReturn(true);
         when(partyMemberRepository.findAllByPartyIdWithMember(partyId))
                 .thenReturn(List.of(partyMember1, partyMember2, partyMember3, partyMember4));
-        when(fileStorage.toPublicUrl("profiles/7/profile.jpg"))
-                .thenReturn("https://example.com/profiles/7.jpg");
-        when(fileStorage.toPublicUrl("profiles/9/profile.jpg"))
-                .thenReturn("https://example.com/profiles/9.jpg");
+        when(memberCharacterRepository.findEquippedByMemberIds(List.of(7L, 8L, 9L, 10L)))
+                .thenReturn(List.of(equippedCharacter1, equippedCharacter2));
         when(partyVerificationRepository.countMonthlyVerificationCounts(eq(partyId), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(List.of(
                         new TestMonthlyPartyVerificationCountProjection(7L, 12L),
@@ -327,15 +335,18 @@ class PartyServiceTest {
         assertThat(response.rankings().get(0).rank()).isEqualTo(1);
         assertThat(response.rankings().get(0).memberId()).isEqualTo(7L);
         assertThat(response.rankings().get(0).nickname()).isEqualTo("은서");
-        assertThat(response.rankings().get(0).profileImageUrl()).isEqualTo("https://example.com/profiles/7.jpg");
+        assertThat(response.rankings().get(0).characterId()).isEqualTo(101L);
         assertThat(response.rankings().get(0).score()).isEqualTo(12L);
         assertThat(response.rankings().get(0).verificationCount()).isEqualTo(12L);
         assertThat(response.rankings().get(1).rank()).isEqualTo(2);
         assertThat(response.rankings().get(1).memberId()).isEqualTo(8L);
+        assertThat(response.rankings().get(1).characterId()).isNull();
         assertThat(response.rankings().get(2).rank()).isEqualTo(2);
         assertThat(response.rankings().get(2).memberId()).isEqualTo(9L);
+        assertThat(response.rankings().get(2).characterId()).isEqualTo(303L);
         assertThat(response.rankings().get(3).rank()).isEqualTo(3);
         assertThat(response.rankings().get(3).memberId()).isEqualTo(10L);
+        assertThat(response.rankings().get(3).characterId()).isNull();
         assertThat(response.rankings().get(3).score()).isEqualTo(0L);
         assertThat(response.rankings().get(3).verificationCount()).isEqualTo(0L);
     }
@@ -622,20 +633,14 @@ class PartyServiceTest {
         return verification;
     }
 
-    private record TestMonthlyPartyParticipationProjection(
-            Long memberId,
-            Long participationCount
-    ) implements MonthlyPartyParticipationProjection {
+    private MemberCharacter createEquippedMemberCharacter(Long memberId, Long characterId) {
+        Member member = createMember(memberId, "member-" + memberId);
+        CharacterItem characterItem = mock(CharacterItem.class);
+        when(characterItem.getId()).thenReturn(characterId);
 
-        @Override
-        public Long getMemberId() {
-            return memberId;
-        }
-
-        @Override
-        public Long getParticipationCount() {
-            return participationCount;
-        }
+        MemberCharacter memberCharacter = new MemberCharacter(member, characterItem);
+        memberCharacter.equip();
+        return memberCharacter;
     }
 
     private record TestMonthlyPartyVerificationCountProjection(

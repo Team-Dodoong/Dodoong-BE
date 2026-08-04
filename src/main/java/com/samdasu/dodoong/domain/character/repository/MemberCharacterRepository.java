@@ -35,6 +35,18 @@ public interface MemberCharacterRepository
     @Query("""
             select mc
             from MemberCharacter mc
+            join fetch mc.member
+            join fetch mc.characterItem
+            where mc.member.id in :memberIds
+                and mc.isEquipped = true
+            """)
+    List<MemberCharacter> findEquippedByMemberIds(
+            @Param("memberIds") List<Long> memberIds
+    );
+
+    @Query("""
+            select mc
+            from MemberCharacter mc
             join fetch mc.characterItem
             where mc.member.id = :memberId
                 and mc.isEquipped = true
