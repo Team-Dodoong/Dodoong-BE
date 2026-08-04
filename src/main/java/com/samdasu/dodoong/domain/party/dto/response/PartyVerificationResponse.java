@@ -1,5 +1,6 @@
 package com.samdasu.dodoong.domain.party.dto.response;
 
+import com.samdasu.dodoong.domain.member.entity.Member;
 import com.samdasu.dodoong.domain.party.entity.PartyVerification;
 
 import java.time.LocalDateTime;
@@ -12,9 +13,14 @@ public record PartyVerificationResponse(
         String nickname,
         String imageUrl,
         boolean verified,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        int level,
+        int experience,
+        boolean leveledUp
 ) {
-    public static PartyVerificationResponse from(PartyVerification verification) {
+    public static PartyVerificationResponse from(PartyVerification verification,
+                                                 Member member,
+                                                 boolean leveledUp) {
         return new PartyVerificationResponse(
                 verification.getId(),
                 verification.getParty().getId(),
@@ -23,7 +29,10 @@ public record PartyVerificationResponse(
                 verification.getPartyMember().getMember().getNickname(),
                 verification.getImageUrl(),
                 verification.isVerified(),
-                verification.getCreatedAt()
+                verification.getCreatedAt(),
+                member.getLevel(),
+                member.getExperience(),
+                leveledUp
         );
     }
 }

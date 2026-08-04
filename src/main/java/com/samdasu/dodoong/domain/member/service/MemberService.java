@@ -2,7 +2,6 @@ package com.samdasu.dodoong.domain.member.service;
 
 import com.samdasu.dodoong.domain.character.repository.MemberCharacterRepository;
 import com.samdasu.dodoong.domain.member.dto.request.ProfileImageUploadRequest;
-import com.samdasu.dodoong.domain.member.dto.response.LevelUpResponse;
 import com.samdasu.dodoong.domain.member.dto.response.MemberResponse;
 import com.samdasu.dodoong.domain.member.dto.request.ProfileUpdateRequest;
 import com.samdasu.dodoong.domain.member.dto.response.ProfileImageUploadResponse;
@@ -109,19 +108,6 @@ public class MemberService {
         memberCharacterRepository.deleteAllByMemberId(memberId);
 
         memberRepository.delete(member);
-    }
-
-    @Transactional
-    public LevelUpResponse levelUp(Long memberId) {
-        Member member = findMember(memberId);
-
-        if (!member.canLevelUp()) {
-            throw new CustomException(ErrorCode.INSUFFICIENT_EXPERIENCE);
-        }
-
-        member.levelUp();
-
-        return LevelUpResponse.from(member);
     }
 
     private Member findMember(Long memberId) {

@@ -18,4 +18,7 @@ public interface FileStorage {
 
     // 객체 삭제
     void delete(String key);
+
+    // 공개 URL을 key값으로 변경
+    String extractKeyFromUrl(String imageUrl);
 }

@@ -120,4 +120,12 @@ public class S3FileStorage implements FileStorage {
     private String stripTrailingSlash(String value) {
         return value.endsWith("/") ? value.substring(0, value.length() - 1) : value;
     }
+
+    public String extractKeyFromUrl(String url) {
+        String baseUrl = stripTrailingSlash(props.baseUrl()) + "/";
+        if (url != null && url.startsWith(baseUrl)) {
+            return url.substring(baseUrl.length());
+        }
+        return url;
+    }
 }

@@ -19,6 +19,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class StreakService {
 
+    private static final int STREAK_REWARD_INTERVAL = 7;
+    private static final int STREAK_REWARD_COIN = 10;
+
     // 일일퀘스트 또는 파티 퀘스트를 합하여 1개 이상 완료 시 스트릭 인정
     private static final long REQUIRED_COMPLETED_QUEST_COUNT = 1L;
 
@@ -31,7 +34,6 @@ public class StreakService {
     public void evaluateDailyStreak(Long memberId, LocalDate targetDate) {
 
         //완료한 퀘스트 합산
-        //TODO: 파티 퀘스트 구현체 추가해야 파티 퀘스트까지 합산 됨
         long completedQuestCount = achievementSources.stream()
                 .mapToLong(source -> source.countCompletedQuests(memberId, targetDate))
                 .sum();
@@ -60,6 +62,12 @@ public class StreakService {
         // 기존 스트릭과 연속된 날짜인 경우엔 스트릭 증가
         if (latestStreak.canContinue(targetDate)) {
             latestStreak.continueStreak(targetDate);
+
+            // 7일마다 코인 지급
+            if (latestStreak.getConsecutiveDays() % STREAK_REWARD_INTERVAL == 0) {
+                member.earnCoin(STREAK_REWARD_COIN);
+            }
+
             return;
         }
 

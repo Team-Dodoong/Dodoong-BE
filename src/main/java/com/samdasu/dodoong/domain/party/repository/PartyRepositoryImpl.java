@@ -27,7 +27,7 @@ public class PartyRepositoryImpl implements PartyRepositoryCustom {
         List<Party> content = queryFactory
                 .selectFrom(party)
                 .where(
-                        isPublicParty(),
+                        // isPublicParty(),
                         keywordContains(keyword),
                         categoryIn(categories)
                 )
@@ -40,7 +40,7 @@ public class PartyRepositoryImpl implements PartyRepositoryCustom {
                 .select(party.count())
                 .from(party)
                 .where(
-                        isPublicParty(),
+                        // isPublicParty(),
                         keywordContains(keyword),
                         categoryIn(categories)
                 );

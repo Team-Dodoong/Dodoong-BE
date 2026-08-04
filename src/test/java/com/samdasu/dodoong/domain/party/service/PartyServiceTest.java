@@ -490,6 +490,7 @@ class PartyServiceTest {
                 .thenReturn(Optional.of(partyMember));
         when(partyMemberRepository.findByMemberIdAndPartyIdForUpdate(memberId, partyId))
                 .thenReturn(Optional.of(partyMember));
+        when(memberRepository.findByIdForUpdate(memberId)).thenReturn(Optional.of(member));
         when(partyVerificationRepository.existsByPartyMemberIdAndVerificationDate(eq(15L), any(LocalDate.class)))
                 .thenReturn(false, false);
         when(fileStorage.upload(image, "party-verifications/3/7"))
@@ -506,10 +507,15 @@ class PartyServiceTest {
         assertThat(response.imageUrl()).isEqualTo("https://example.com/verifications/24.jpg");
         assertThat(response.verified()).isTrue();
         assertThat(response.createdAt()).isEqualTo(LocalDateTime.of(2026, 7, 13, 23, 26, 41));
+        assertThat(response.level()).isEqualTo(1);
+        assertThat(response.experience()).isEqualTo(10);
+        assertThat(response.leveledUp()).isFalse();
+        assertThat(member.getExperience()).isEqualTo(10);
 
         InOrder inOrder = inOrder(
                 partyRepository,
                 partyMemberRepository,
+                memberRepository,
                 partyVerificationRepository,
                 fileStorage
         );
@@ -521,6 +527,54 @@ class PartyServiceTest {
         inOrder.verify(partyMemberRepository).findByMemberIdAndPartyIdForUpdate(memberId, partyId);
         inOrder.verify(partyVerificationRepository)
                 .existsByPartyMemberIdAndVerificationDate(eq(15L), any(LocalDate.class));
+        inOrder.verify(memberRepository).findByIdForUpdate(memberId);
+        inOrder.verify(partyVerificationRepository).save(any(PartyVerification.class));
+    }
+
+    @Test
+    void createPartyVerificationAutomaticallyLevelsUpWhenExperienceReachesThreshold() {
+        Long memberId = 7L;
+        Long partyId = 3L;
+        Party party = createParty(partyId, "미라클 모닝", null, 10, true);
+        Member member = createMember(memberId, "dodoong", "은서");
+        ReflectionTestUtils.setField(member, "experience", 190);
+        PartyMember partyMember = createPartyMember(15L, member, party);
+        MockMultipartFile image = new MockMultipartFile(
+                "image",
+                "verification.jpg",
+                "image/jpeg",
+                "image-content".getBytes()
+        );
+        PartyVerification verification = PartyVerification.builder()
+                .party(party)
+                .partyMember(partyMember)
+                .imageUrl("https://example.com/verifications/25.jpg")
+                .verified(true)
+                .verificationDate(LocalDate.now(ZONE_KST))
+                .build();
+        ReflectionTestUtils.setField(verification, "id", 25L);
+        ReflectionTestUtils.setField(verification, "createdAt", LocalDateTime.of(2026, 7, 14, 6, 10, 0));
+
+        when(partyRepository.findById(partyId)).thenReturn(Optional.of(party));
+        when(partyMemberRepository.findByMemberIdAndPartyId(memberId, partyId))
+                .thenReturn(Optional.of(partyMember));
+        when(partyMemberRepository.findByMemberIdAndPartyIdForUpdate(memberId, partyId))
+                .thenReturn(Optional.of(partyMember));
+        when(memberRepository.findByIdForUpdate(memberId)).thenReturn(Optional.of(member));
+        when(partyVerificationRepository.existsByPartyMemberIdAndVerificationDate(eq(15L), any(LocalDate.class)))
+                .thenReturn(false, false);
+        when(fileStorage.upload(image, "party-verifications/3/7"))
+                .thenReturn("https://example.com/verifications/25.jpg");
+        when(partyVerificationRepository.save(any(PartyVerification.class))).thenReturn(verification);
+
+        PartyVerificationResponse response = partyService.createPartyVerification(memberId, partyId, image);
+
+        assertThat(response.level()).isEqualTo(2);
+        assertThat(response.experience()).isZero();
+        assertThat(response.leveledUp()).isTrue();
+        assertThat(member.getLevel()).isEqualTo(2);
+        assertThat(member.getExperience()).isZero();
+        assertThat(member.getCoin()).isEqualTo(20);
     }
 
     @Test

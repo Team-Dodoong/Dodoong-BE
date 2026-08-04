@@ -84,8 +84,11 @@ public class Party extends BaseTimeEntity {
         this.maxMembers = dto.maxMembers();
         this.isPublic = dto.isPublic();
         this.partyPassword = dto.isPublic() ? null : encodedPassword;
-        this.imageUrl = dto.imageUrl();
         updateRecruitingStatus();
+    }
+
+    public void updateImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     //파티 현재 인원 증가(가입)
