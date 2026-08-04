@@ -507,8 +507,9 @@ class PartyServiceTest {
         assertThat(response.imageUrl()).isEqualTo("https://example.com/verifications/24.jpg");
         assertThat(response.verified()).isTrue();
         assertThat(response.createdAt()).isEqualTo(LocalDateTime.of(2026, 7, 13, 23, 26, 41));
+        assertThat(response.level()).isEqualTo(1);
         assertThat(response.experience()).isEqualTo(10);
-        assertThat(response.canLevelUp()).isFalse();
+        assertThat(response.leveledUp()).isFalse();
         assertThat(member.getExperience()).isEqualTo(10);
 
         InOrder inOrder = inOrder(
@@ -531,7 +532,7 @@ class PartyServiceTest {
     }
 
     @Test
-    void createPartyVerificationReturnsCanLevelUpWhenExperienceReachesThreshold() {
+    void createPartyVerificationAutomaticallyLevelsUpWhenExperienceReachesThreshold() {
         Long memberId = 7L;
         Long partyId = 3L;
         Party party = createParty(partyId, "미라클 모닝", null, 10, true);
@@ -568,8 +569,12 @@ class PartyServiceTest {
 
         PartyVerificationResponse response = partyService.createPartyVerification(memberId, partyId, image);
 
-        assertThat(response.experience()).isEqualTo(200);
-        assertThat(response.canLevelUp()).isTrue();
+        assertThat(response.level()).isEqualTo(2);
+        assertThat(response.experience()).isZero();
+        assertThat(response.leveledUp()).isTrue();
+        assertThat(member.getLevel()).isEqualTo(2);
+        assertThat(member.getExperience()).isZero();
+        assertThat(member.getCoin()).isEqualTo(20);
     }
 
     @Test
