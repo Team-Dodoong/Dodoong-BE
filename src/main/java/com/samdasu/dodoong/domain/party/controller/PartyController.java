@@ -38,12 +38,13 @@ public class PartyController {
 
     private final PartyService partyService;
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public BaseResponse<PartyResponseDto> createParty(
-            @Valid @RequestBody PartyRequestDto requestDto,
+            @RequestPart("requestDto") @Valid PartyRequestDto requestDto,
+            @RequestPart(value = "image", required = false) MultipartFile image,
             @AuthenticationPrincipal CustomUserPrincipal principal
     ) {
-        PartyResponseDto response = partyService.createParty(requestDto, principal.memberId());
+        PartyResponseDto response = partyService.createParty(requestDto, image, principal.memberId());
         return BaseResponse.created(response);
     }
 

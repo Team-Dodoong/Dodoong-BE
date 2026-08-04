@@ -88,6 +88,10 @@ public class Party extends BaseTimeEntity {
         updateRecruitingStatus();
     }
 
+    public void updateImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
     //파티 현재 인원 증가(가입)
     public void increaseCurrentMembers() {
         if (this.currentMembers >= this.maxMembers) {

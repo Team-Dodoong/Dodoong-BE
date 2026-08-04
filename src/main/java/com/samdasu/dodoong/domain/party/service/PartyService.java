@@ -64,11 +64,19 @@ public class PartyService {
     private final FileStorage fileStorage;
 
     @Transactional
-    public PartyResponseDto createParty(PartyRequestDto requestDto, Long memberId) {
+    public PartyResponseDto createParty(PartyRequestDto requestDto, MultipartFile image, Long memberId) {
         Member member = findMember(memberId);
 
         String encodedPassword = encodePassword(requestDto.partyPassword());
         Party savedParty = partyRepository.save(requestDto.toEntity(encodedPassword));
+
+        if (image != null && !image.isEmpty()) {
+            String imageUrl = fileStorage.upload(
+                    image,
+                    "parties/" + savedParty.getId()
+            );
+            savedParty.updateImageUrl(imageUrl);
+        }
 
         PartyMember partyMember = PartyMember.builder()
                 .role(PartyRole.LEADER)
