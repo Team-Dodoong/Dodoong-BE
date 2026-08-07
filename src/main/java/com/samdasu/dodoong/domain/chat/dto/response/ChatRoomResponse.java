@@ -15,11 +15,12 @@ public record ChatRoomResponse(
         LocalDateTime lastMessageAt
 ) {
     public static ChatRoomResponse of(Party party,
+                                      String partyImageUrl,
                                       int memberCount,
                                       ChatMessage lastMessage) {
         return new ChatRoomResponse(
                 party.getId(),
-                party.getImageUrl(),
+                partyImageUrl,
                 party.getName(),
                 memberCount,
                 party.isPublic(),
