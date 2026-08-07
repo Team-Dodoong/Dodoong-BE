@@ -1,6 +1,7 @@
 package com.samdasu.dodoong.domain.party.service;
 
 import com.samdasu.dodoong.domain.character.repository.MemberCharacterRepository;
+import com.samdasu.dodoong.domain.chat.repository.ChatMessageRepository;
 import com.samdasu.dodoong.domain.member.entity.Member;
 import com.samdasu.dodoong.domain.member.repository.MemberRepository;
 import com.samdasu.dodoong.domain.party.dto.request.PartyJoinRequest;
@@ -59,6 +60,7 @@ public class PartyService {
     private final MemberRepository memberRepository;
     private final MemberCharacterRepository memberCharacterRepository;
     private final PartyVerificationRepository partyVerificationRepository;
+    private final ChatMessageRepository chatMessageRepository;
     private final PasswordEncoder passwordEncoder;
     private final FileStorage fileStorage;
 
@@ -118,6 +120,7 @@ public class PartyService {
         Party party = findParty(partyId);
         authorizePartyLeader(partyId, memberId);
 
+        chatMessageRepository.deleteByPartyId(partyId);
         partyRepository.delete(party);
     }
 
