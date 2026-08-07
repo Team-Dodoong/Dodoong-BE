@@ -4,6 +4,7 @@ import com.samdasu.dodoong.domain.chat.entity.ChatMessage;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -35,4 +36,8 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     List<ChatMessage> findLatestMessagesByPartyIds(
             @Param("partyIds") List<Long> partyIds
     );
+
+    @Modifying
+    @Query("DELETE FROM ChatMessage c WHERE c.party.id = :partyId")
+    void deleteByPartyId(@Param("partyId") Long partyId);
 }
