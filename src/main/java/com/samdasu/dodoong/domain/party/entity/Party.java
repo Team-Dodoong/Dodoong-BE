@@ -55,9 +55,6 @@ public class Party extends BaseTimeEntity {
     @Column(nullable = false)
     private String questContent;
 
-    @OneToMany(mappedBy = "party", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<PartyMember> partyMembers = new ArrayList<>();
-
     @Builder
     public Party(String name, String description, List<PartyCategory> category, String imageUrl, int maxMembers, boolean isRecruiting, boolean isPublic, String partyPassword, String questContent) {
         this.name = name;
