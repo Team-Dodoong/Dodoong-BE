@@ -84,7 +84,8 @@ public class PartyService {
                 .build();
         partyMemberRepository.save(partyMember);
 
-        return PartyResponseDto.from(savedParty, createPartyImageUrl(savedParty.getImageUrl()), true, true);
+        return PartyResponseDto.from(
+                savedParty, fileStorage.toDownloadUrlOrNull(savedParty.getImageUrl()), true, true);
     }
 
     @Transactional
@@ -108,7 +109,8 @@ public class PartyService {
             party.updateImageUrl(fileStorage.extractKeyFromUrl(imageUrl));
         }
 
-        return PartyResponseDto.from(party, createPartyImageUrl(party.getImageUrl()), true, true);
+        return PartyResponseDto.from(
+                party, fileStorage.toDownloadUrlOrNull(party.getImageUrl()), true, true);
     }
 
     @Transactional
@@ -602,13 +604,6 @@ public class PartyService {
         return fileStorage.toPublicUrl(profileImageKey);
     }
 
-    private String createPartyImageUrl(String imageKey) {
-        if (imageKey == null || imageKey.isBlank()) {
-            return null;
-        }
-        return fileStorage.createDownloadUrl(imageKey);
-    }
-
     private PartyResponseDto createDetailResponse(Party party, Long memberId) {
         boolean isOwner = false;
         boolean isJoined = false;
@@ -620,6 +615,6 @@ public class PartyService {
             isOwner = myPartyMember.get().getRole() == PartyRole.LEADER;
         }
 
-        return PartyResponseDto.from(party, createPartyImageUrl(party.getImageUrl()), isOwner, isJoined);
+        return PartyResponseDto.from(party, fileStorage.toDownloadUrlOrNull(party.getImageUrl()), isOwner, isJoined);
     }
 }
