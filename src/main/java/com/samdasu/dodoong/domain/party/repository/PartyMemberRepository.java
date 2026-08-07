@@ -92,4 +92,8 @@ public interface PartyMemberRepository extends JpaRepository<PartyMember, Long> 
                 AND pm.role = :role
            """)
     List<PartyMember> findAllByMemberIdAndRole(@Param("memberId") Long memberId, @Param("role") PartyRole role);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("DELETE FROM PartyMember pm WHERE pm.party.id = :partyId")
+    void deleteByPartyId(@Param("partyId") Long partyId);
 }
