@@ -21,4 +21,12 @@ public interface FileStorage {
 
     // 공개 URL을 key값으로 변경
     String extractKeyFromUrl(String imageUrl);
+
+    // key -> 비공개 객체 조회용 presigned GET url 변환
+    default String toDownloadUrlOrNull(String key) {
+        if (key == null || key.isBlank()) {
+            return null;
+        }
+        return createDownloadUrl(key);
+    }
 }

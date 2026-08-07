@@ -16,6 +16,7 @@ import com.samdasu.dodoong.domain.party.repository.PartyRepository;
 import com.samdasu.dodoong.domain.party.repository.projection.PartyMemberCountProjection;
 import com.samdasu.dodoong.global.exception.CustomException;
 import com.samdasu.dodoong.global.response.code.ErrorCode;
+import com.samdasu.dodoong.global.storage.FileStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
@@ -37,8 +38,8 @@ public class ChatService {
     private final PartyMemberRepository partyMemberRepository;
     private final MemberRepository memberRepository;
     private final PartyRepository partyRepository;
-    private final ChatMessagePublisher chatMessagePublisher;
     private final ApplicationEventPublisher eventPublisher;
+    private final FileStorage fileStorage;
 
     @Transactional
     public void sendMessage(Long partyId, Long senderId, ChatMessageRequest request) {
@@ -113,6 +114,7 @@ public class ChatService {
         return myParties.stream()
                 .map(party -> ChatRoomResponse.of(
                         party,
+                        fileStorage.toDownloadUrlOrNull(party.getImageUrl()),
                         memberCountMap.getOrDefault(party.getId(), 0L).intValue(),
                         lastMessageMap.get(party.getId())
                 ))
