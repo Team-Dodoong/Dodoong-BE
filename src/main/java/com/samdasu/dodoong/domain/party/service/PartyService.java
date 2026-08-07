@@ -120,8 +120,21 @@ public class PartyService {
         Party party = findParty(partyId);
         authorizePartyLeader(partyId, memberId);
 
+        List<String> verificationImageUrls = partyVerificationRepository.findImageUrlsByPartyId(partyId);
+        String partyImageUrl = party.getImageUrl();
+
         chatMessageRepository.deleteByPartyId(partyId);
+        partyVerificationRepository.deleteByPartyId(partyId);
+        partyMemberRepository.deleteByPartyId(partyId);
         partyRepository.delete(party);
+
+        // 파티 이미지 삭제
+        if (partyImageUrl != null) {
+            fileStorage.delete(partyImageUrl);
+        }
+        for (String url : verificationImageUrls) {
+            fileStorage.delete(url);
+        }
     }
 
     @Transactional(readOnly = true)

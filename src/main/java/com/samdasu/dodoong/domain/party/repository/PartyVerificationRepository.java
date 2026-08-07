@@ -3,6 +3,7 @@ package com.samdasu.dodoong.domain.party.repository;
 import com.samdasu.dodoong.domain.party.entity.PartyVerification;
 import com.samdasu.dodoong.domain.party.repository.projection.MonthlyPartyVerificationCountProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -46,4 +47,12 @@ public interface PartyVerificationRepository extends JpaRepository<PartyVerifica
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("DELETE FROM PartyVerification pv WHERE pv.party.id = :partyId")
+    void deleteByPartyId(@Param("partyId") Long partyId);
+
+    // S3 이미지 삭제를 위해 URL 가져오는 쿼리
+    @Query("SELECT pv.imageUrl FROM PartyVerification pv WHERE pv.party.id = :partyId AND pv.imageUrl IS NOT NULL")
+    List<String> findImageUrlsByPartyId(@Param("partyId") Long partyId);
 }
