@@ -67,10 +67,10 @@
     <td align="center">정유진</td>
   </tr>
   <tr>
-    <td align="center">내용</td>
-    <td align="center">내용</td>
-    <td align="center">내용</td>
-    <td align="center">내용</td>
+    <td align="center">파티 생성·관리,<br>검색 및 조회 기능 개발</td>
+    <td align="center">파티 참여·인증,<br>참여율 및 랭킹 기능 개발</td>
+    <td align="center">회원·인증 기능,<br>프로필 관리,<br>스트릭 및 캐릭터 기능 개발</td>
+    <td align="center">일일퀘스트·루틴,<br>실시간 채팅 기능 개발,<br>CI/CD 구축 및 서버 배포</td>
   </tr>
 </table>
 
