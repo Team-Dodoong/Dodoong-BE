@@ -21,14 +21,6 @@
 ## 🗓️ 개발 기간
 - 2026.06.30 ~ 2026.08.07
 
-## 💡 주요 기능
-<img width="1920" height="1080" alt="11" src="https://github.com/user-attachments/assets/7270f7dd-08d5-409a-aaf7-fed824a1b34e" />
-<img width="1920" height="1080" alt="9" src="https://github.com/user-attachments/assets/5145907e-386d-4660-bdca-ebf4d69291e5" />
-<img width="1920" height="1080" alt="19" src="https://github.com/user-attachments/assets/7012800c-81f0-4fcc-94d0-d12134a6f577" />
-
-## 📚 API 문서
-- Swagger UI: https://api.dodoong.p-e.kr/swagger-ui/index.html
-
 ## 🔨 기술 스택
 
 **Develop**
@@ -42,6 +34,11 @@
 **Deploy**
 
 <img src="https://img.shields.io/badge/AWS%20EC2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white"> <img src="https://img.shields.io/badge/AWS%20S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white"> <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white"> <img src="https://img.shields.io/badge/Nginx%201.27-009639?style=for-the-badge&logo=nginx&logoColor=white"> <img src="https://img.shields.io/badge/GitHub%20Actions-181717?style=for-the-badge&logo=githubactions&logoColor=white">
+
+## 💡 주요 기능
+<img width="1920" height="1080" alt="11" src="https://github.com/user-attachments/assets/7270f7dd-08d5-409a-aaf7-fed824a1b34e" />
+<img width="1920" height="1080" alt="9" src="https://github.com/user-attachments/assets/5145907e-386d-4660-bdca-ebf4d69291e5" />
+<img width="1920" height="1080" alt="19" src="https://github.com/user-attachments/assets/7012800c-81f0-4fcc-94d0-d12134a6f577" />
 
 ## 🖥️ ERD
 <img width="1173" height="610" alt="image" src="https://github.com/user-attachments/assets/b78add65-4c26-42ac-b5a8-08bc8055927d" />
