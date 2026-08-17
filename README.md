@@ -40,9 +40,6 @@
 <img width="1920" height="1080" alt="9" src="https://github.com/user-attachments/assets/5145907e-386d-4660-bdca-ebf4d69291e5" />
 <img width="1920" height="1080" alt="19" src="https://github.com/user-attachments/assets/7012800c-81f0-4fcc-94d0-d12134a6f577" />
 
-## 🖥️ ERD
-<img width="1173" height="610" alt="image" src="https://github.com/user-attachments/assets/b78add65-4c26-42ac-b5a8-08bc8055927d" />
-
 ## 👩‍💻 팀원
 <table>
   <tr>
@@ -71,7 +68,8 @@
   </tr>
 </table>
 
-
+## 🖥️ ERD
+<img width="1173" height="610" alt="image" src="https://github.com/user-attachments/assets/b78add65-4c26-42ac-b5a8-08bc8055927d" />
 
 ## 📁 프로젝트 구조
 ```
