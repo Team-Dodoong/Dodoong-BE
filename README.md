@@ -1,7 +1,7 @@
 <div align="center">
   <h1> Dodoong - Backend</h1>
   <p>EFUB 6기 SWS 3팀 "Dodoong" 프로젝트 백엔드 레포지토리입니다.</p>
-  <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/5e662f3e-91e0-4257-8549-bd1842bfa5ca" />
+  <img width="1920" height="1080" alt="1" src="https://github.com/user-attachments/assets/05e0058f-0d53-4f1c-94dd-4d27c00f53c9" />
 </div>
 
 ## 두둥 Dodoong
@@ -36,9 +36,12 @@
 <img src="https://img.shields.io/badge/AWS%20EC2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white"> <img src="https://img.shields.io/badge/AWS%20S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white"> <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white"> <img src="https://img.shields.io/badge/Nginx%201.27-009639?style=for-the-badge&logo=nginx&logoColor=white"> <img src="https://img.shields.io/badge/GitHub%20Actions-181717?style=for-the-badge&logo=githubactions&logoColor=white">
 
 ## 💡 주요 기능
-<img width="1920" height="1080" alt="11" src="https://github.com/user-attachments/assets/7270f7dd-08d5-409a-aaf7-fed824a1b34e" />
-<img width="1920" height="1080" alt="9" src="https://github.com/user-attachments/assets/5145907e-386d-4660-bdca-ebf4d69291e5" />
-<img width="1920" height="1080" alt="19" src="https://github.com/user-attachments/assets/7012800c-81f0-4fcc-94d0-d12134a6f577" />
+<img width="1920" height="1080" alt="7" src="https://github.com/user-attachments/assets/7b0ae727-d76e-4e6f-bdce-550d303797a6" />
+<img width="1920" height="1080" alt="8" src="https://github.com/user-attachments/assets/ff437aaf-0be9-40a6-92db-b546a09be96b" />
+<img width="1920" height="1080" alt="10" src="https://github.com/user-attachments/assets/bb58f114-1548-412e-abec-1a27ea4fb0fc" />
+<img width="1920" height="1080" alt="9" src="https://github.com/user-attachments/assets/a3ca0bb1-c40a-4377-ae8e-11fb09f7b03e" />
+
+
 
 ## 👩‍💻 팀원
 <table>
